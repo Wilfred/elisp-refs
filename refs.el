@@ -1,4 +1,4 @@
-;;; callers.el --- find callers of elisp functions or macros  -*- lexical-binding: t; -*-
+;;; refs.el --- find callers of elisp functions or macros  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016  
 
@@ -32,7 +32,7 @@
 
 (require 'dash)
 
-(defun callers--next-sexp-start ()
+(defun refs--next-sexp-start ()
   "Put point at the start of the next sexp.
 Signals 'end if there are no more sexps."
   ;; TODO: write in terms of `scan-sexps'.
@@ -41,14 +41,14 @@ Signals 'end if there are no more sexps."
     (throw 'after-last-sexp nil))
   (forward-sexp -1))
 
-(defun callers--read-all-forms (buffer)
+(defun refs--read-all-forms (buffer)
   "Return a list of all the forms in BUFFER, with the string
 indexes where each form starts and ends."
   (let ((forms nil))
     (with-current-buffer buffer
       (catch 'after-last-sexp
         (goto-char (point-min))
-        (callers--next-sexp-start)
+        (refs--next-sexp-start)
         ;; Loop until we have no more forms to read.
         (while t
           ;; String indexing is zero-indexed, but point is
@@ -59,10 +59,10 @@ indexes where each form starts and ends."
                  (sexp-end (cdr form-with-pos)))
             (push (list form sexp-start sexp-end) forms)
             (goto-char (1+ sexp-end)))
-          (callers--next-sexp-start))))
+          (refs--next-sexp-start))))
     (nreverse forms)))
 
-(defun callers--find-call (form symbol)
+(defun refs--find-call (form symbol)
   "If FORM contains a call to SYMBOL, return it.
 Returns nil otherwise.
 
@@ -75,10 +75,10 @@ ignored."
     form)
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((consp form)
-    (--any-p (callers--has-call-p it symbol) form))
+    (--first (refs--find-call it symbol) form))
    ;; If it's not a cons cell, it's not a call.
    (t
     nil)))
 
-(provide 'callers)
-;;; callers.el ends here
+(provide 'refs)
+;;; refs.el ends here
