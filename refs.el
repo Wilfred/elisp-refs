@@ -62,8 +62,8 @@ indexes where each form starts and ends."
           (refs--next-sexp-start))))
     (nreverse forms)))
 
-(defun refs--find-call (form symbol)
-  "If FORM contains a call to SYMBOL, return it.
+(defun refs--find-calls (form symbol)
+  "If FORM contains any calls to SYMBOL, return those subforms.
 Returns nil otherwise.
 
 This is basic static analysis, so indirect function calls are
@@ -72,10 +72,10 @@ ignored."
   (cond
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
-    form)
+    (list form))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((consp form)
-    (--first (refs--find-call it symbol) form))
+    (-non-nil (--mapcat (refs--find-calls it symbol) form)))
    ;; If it's not a cons cell, it's not a call.
    (t
     nil)))
