@@ -1,4 +1,5 @@
 # refs.el
+[![Build Status](https://travis-ci.org/Wilfred/refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/refs.el)
 
 An Emacs package for finding references to elisp functions, macros or
 variables.
