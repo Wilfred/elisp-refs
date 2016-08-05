@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.1
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0"))
+;; Package-Requires: ((dash "2.12.0") (f "0.18.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 ;; `read-from-string' returns final index.
 
 (require 'dash)
+(require 'f)
 
 (defun refs--next-sexp-start ()
   "Put point at the start of the next sexp.
@@ -87,6 +88,21 @@ ignored."
                 (when (functionp symbol)
                   (push symbol symbols))))
     symbols))
+
+(defun refs--loaded-files ()
+  "Return a list of all files that have been loaded in Emacs.
+Where the file was a .elc, return the path to the .el file instead."
+  (let ((elc-paths (-map #'-first-item load-history)))
+    (-non-nil
+     (--map
+      (if (s-ends-with-p ".el" it) it
+        (let ((el-name (format "%s.el" (f-no-ext it)))
+              (el-gz-name (format "%s.el.gz" (f-no-ext it))))
+          (cond ((f-exists? el-name) el-name)
+                ((f-exists? el-gz-name) el-gz-name)
+                ;; Ignore files where we can't find a .el file.
+                (t nil))))
+      elc-paths))))
 
 (defun refs-function (symbol)
   "Display all the references to SYMBOL, a function."
