@@ -1,4 +1,10 @@
 (source melpa)
 
-(package-file "callers.el")
+(package-file "refs.el")
+
+(development
+ (depends-on "ert-runner")
+ (depends-on "undercover")
+ (depends-on "f"))
+
 
