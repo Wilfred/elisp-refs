@@ -80,5 +80,26 @@ ignored."
    (t
     nil)))
 
+(defun refs--functions ()
+  "Return a list of all symbols that are variables."
+  (let (symbols)
+    (mapatoms (lambda (symbol)
+                (when (functionp symbol)
+                  (push symbol symbols))))
+    symbols))
+
+(defun refs-function (symbol)
+  "Display all the references to SYMBOL, a function."
+  (interactive
+   ;; TODO: default to function at point.
+   (list (read (completing-read "Function: " (refs--functions)))))
+
+  (let* ((buf (get-buffer-create "refs.el"))
+         (forms (refs--read-all-forms buf))
+         (matching-forms (-non-nil
+                          (--mapcat (refs--find-calls it symbol)
+                                    forms))))
+    (message "Found: %s" matching-forms)))
+
 (provide 'refs)
 ;;; refs.el ends here
