@@ -62,15 +62,17 @@ indexes where each form starts and ends."
           (callers--next-sexp-start))))
     (nreverse forms)))
 
-(defun callers--has-call-p (form symbol)
-  "Return t if FORM contains a call to SYMBOL.
-This is basic static analysis, so indirection function calls are
+(defun callers--find-call (form symbol)
+  "If FORM contains a call to SYMBOL, return it.
+Returns nil otherwise.
+
+This is basic static analysis, so indirect function calls are
 ignored."
   ;; TODO: Handle funcall to static symbols too.
   (cond
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
-    t)
+    form)
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((consp form)
     (--any-p (callers--has-call-p it symbol) form))
