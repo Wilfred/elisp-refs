@@ -13,3 +13,12 @@
     (refs--find-calls '((((x 1)))) 'x)
     (list '(x 1)))))
 
+(ert-deftest refs-read-with-positions-whitespace ()
+  "We should not include leading whitespace when calculating form
+indexes."
+  (with-temp-buffer
+    (insert " foo ")
+    (should
+     (equal
+      (refs--read-with-positions (current-buffer) 0)
+      (list 'foo 1 4)))))
