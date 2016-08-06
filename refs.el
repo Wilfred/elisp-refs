@@ -77,6 +77,19 @@ subform has the same structure."
       ;; reached a closing paren.
       (invalid-read-syntax nil))))
 
+(defun refs--read-all-with-positions (buffer)
+  "Read all the forms from BUFFER. For each form, return
+a list \(form start-index end-index\) recursively."
+  (let ((pos 0)
+        (forms nil))
+    ;; Read forms until we hit EOF, which raises an error.
+    (ignore-errors
+      (while t
+        (let ((indexed-form (refs--read-with-positions buffer pos)))
+          (push indexed-form forms)
+          (setq pos (-last-item indexed-form)))))
+    (nreverse forms)))
+
 (defun refs--read-all-forms (buffer)
   "Return a list of all the forms in BUFFER, with the string
 indexes where each form starts and ends."

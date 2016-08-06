@@ -30,3 +30,14 @@ indexes."
      (equal
       (refs--read-with-positions (current-buffer) 0)
       (list (list (list 'bar 1 4) (list 'baz 5 8)) 0 9)))))
+
+(ert-deftest refs-read-all-with-positions ()
+  (with-temp-buffer
+    (insert "10 20 30")
+    (should
+     (equal
+      (refs--read-all-with-positions (current-buffer))
+      (list
+       (list 10 0 2)
+       (list 20 3 5)
+       (list 30 6 8))))))
