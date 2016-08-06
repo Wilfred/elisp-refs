@@ -33,17 +33,6 @@
 (require 'dash)
 (require 'f)
 
-;; TODO: if point is in the middle of a symbol, this confusingly moves
-;; backwards.
-(defun refs--next-sexp-start ()
-  "Put point at the start of the next sexp.
-Signals 'end if there are no more sexps."
-  ;; TODO: write in terms of `scan-sexps'.
-  (forward-sexp 1)
-  (when (equal (point) (point-max))
-    (throw 'after-last-sexp nil))
-  (forward-sexp -1))
-
 (defun refs--read-with-positions (buffer start)
   "Read a from from BUFFER, starting from offset START.
 Assumes that START is not inside a string or comment.
@@ -88,27 +77,6 @@ a list \(form start-index end-index\) recursively."
         (let ((indexed-form (refs--read-with-positions buffer pos)))
           (push indexed-form forms)
           (setq pos (-last-item indexed-form)))))
-    (nreverse forms)))
-
-(defun refs--read-all-forms (buffer)
-  "Return a list of all the forms in BUFFER, with the string
-indexes where each form starts and ends."
-  (let ((forms nil))
-    (with-current-buffer buffer
-      (catch 'after-last-sexp
-        (goto-char (point-min))
-        (refs--next-sexp-start)
-        ;; Loop until we have no more forms to read.
-        (while t
-          ;; String indexing is zero-indexed, but point is
-          ;; one-indexed.
-          (let* ((sexp-start (1- (point)))
-                 (form-with-pos (read-from-string (buffer-string) sexp-start))
-                 (form (car form-with-pos))
-                 (sexp-end (cdr form-with-pos)))
-            (push (list form sexp-start sexp-end) forms)
-            (goto-char (1+ sexp-end)))
-          (refs--next-sexp-start))))
     (nreverse forms)))
 
 (defun refs--find-calls (form symbol)
