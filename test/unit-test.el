@@ -1,18 +1,6 @@
 (require 'ert)
 (require 'refs)
 
-(ert-deftest refs-find-calls-returns-forms ()
-  (should
-   (equal
-    (refs--find-calls '(x 1 (y 2) (aa (bb cc))) 'bb)
-    (list '(bb cc)))))
-
-(ert-deftest refs-find-calls-form-depth ()
-  (should
-   (equal
-    (refs--find-calls '((((x 1)))) 'x)
-    (list '(x 1)))))
-
 (ert-deftest refs-read-with-positions-whitespace ()
   "We should not include leading whitespace when calculating form
 indexes."
@@ -41,3 +29,19 @@ indexes."
        (list 10 0 2)
        (list 20 3 5)
        (list 30 6 8))))))
+
+(ert-deftest refs-find-calls ()
+  "Ensure we can find top level calls and calls inside functions."
+  (let (indexed-forms)
+    (with-temp-buffer
+      (insert "(foo 1)\n")
+      (insert "(defun bar () (foo))")
+      (setq indexed-forms (refs--read-all-with-positions (current-buffer))))
+    (should
+     (equal
+      (refs--find-calls indexed-forms 'foo)
+      (list
+       ;; Calling (foo 1)
+       '(((foo 1 4) (1 5 6)) 0 7)
+       ;; Calling (foo)
+       '(((foo 23 26)) 22 27))))))

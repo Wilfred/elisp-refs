@@ -79,23 +79,32 @@ a list \(form start-index end-index\) recursively."
           (setq pos (-last-item indexed-form)))))
     (nreverse forms)))
 
-(defun refs--find-calls (form symbol)
-  "If FORM contains any calls to SYMBOL, return those subforms.
+;; TODO: factor out a flat map, and a map that saves us destructuring
+;; indexed forms everywhere.
+(defun refs--find-calls-1 (indexed-form symbol)
+  "If INDEXED-FORM contains any calls to SYMBOL, return those subforms.
 Returns nil otherwise.
 
 This is basic static analysis, so indirect function calls are
 ignored."
   ;; TODO: Handle funcall to static symbols too.
-  (cond
-   ;; Base case: are we looking at (symbol ...)?
-   ((and (consp form) (eq (car form) symbol))
-    (list form))
-   ;; Recurse, so we can find (... (symbol ...) ...)
-   ((consp form)
-    (-non-nil (--mapcat (refs--find-calls it symbol) form)))
-   ;; If it's not a cons cell, it's not a call.
-   (t
-    nil)))
+  ;; TODO: (defun foo (bar baz)) is not a function call to bar.
+  (-let [(form start-index end-index) indexed-form]
+    (cond
+     ;; Base case: are we looking at ((symbol 1 2) ...)?
+     ((and (consp form) (eq (caar form) symbol))
+      (list indexed-form))
+     ;; Recurse, so we can find (... ((symbol 1 2) ...) ...)
+     ((consp form)
+      (-non-nil (--mapcat (refs--find-calls-1 it symbol) form)))
+     ;; If it's not a cons cell, it's not a call.
+     (t
+      nil))))
+
+(defun refs--find-calls (indexed-forms symbol)
+  "If INDEXED-FORMS (a list of indexed fdorms) contains any calls to SYMBOL,
+return those subforms."
+  (--mapcat (refs--find-calls-1 it symbol) indexed-forms))
 
 (defun refs--functions ()
   "Return a list of all symbols that are variables."
