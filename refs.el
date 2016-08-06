@@ -33,6 +33,8 @@
 (require 'dash)
 (require 'f)
 
+;; TODO: if point is in the middle of a symbol, this confusingly moves
+;; backwards.
 (defun refs--next-sexp-start ()
   "Put point at the start of the next sexp.
 Signals 'end if there are no more sexps."
