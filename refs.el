@@ -44,6 +44,22 @@ Signals 'end if there are no more sexps."
     (throw 'after-last-sexp nil))
   (forward-sexp -1))
 
+(defun refs--read-with-positions (buffer start)
+  "Read a from from BUFFER, starting from offset START.
+
+For each form, return a list \(form start-index end-index\). Each
+subform has the same structure."
+  (with-current-buffer buffer
+    (goto-char (1+ start))
+    (let* (start-pos
+           ;; `read' moves point to the end of the current form.
+           (form (read buffer))
+           (end-pos (1- (point))))
+      ;; TODO: write in terms of `scan-sexps'.
+      (forward-sexp -1)
+      (setq start-pos (1- (point)))
+      (list form start-pos end-pos))))
+
 (defun refs--read-all-forms (buffer)
   "Return a list of all the forms in BUFFER, with the string
 indexes where each form starts and ends."
