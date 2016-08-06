@@ -22,3 +22,11 @@ indexes."
      (equal
       (refs--read-with-positions (current-buffer) 0)
       (list 'foo 1 4)))))
+
+(ert-deftest refs-read-with-positions-recurse ()
+  (with-temp-buffer
+    (insert "(bar baz)")
+    (should
+     (equal
+      (refs--read-with-positions (current-buffer) 0)
+      (list (list (list 'bar 1 4) (list 'baz 5 8)) 0 9)))))

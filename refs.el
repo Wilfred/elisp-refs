@@ -46,19 +46,36 @@ Signals 'end if there are no more sexps."
 
 (defun refs--read-with-positions (buffer start)
   "Read a from from BUFFER, starting from offset START.
+Assumes that START is not inside a string or comment.
 
 For each form, return a list \(form start-index end-index\). Each
 subform has the same structure."
   (with-current-buffer buffer
     (goto-char (1+ start))
-    (let* (start-pos
-           ;; `read' moves point to the end of the current form.
-           (form (read buffer))
-           (end-pos (1- (point))))
-      ;; TODO: write in terms of `scan-sexps'.
-      (forward-sexp -1)
-      (setq start-pos (1- (point)))
-      (list form start-pos end-pos))))
+    (condition-case _err
+        (let* (start-pos
+               ;; `read' moves point to the end of the current form.
+               (form (read buffer))
+               (end-pos (1- (point))))
+          ;; TODO: write in terms of `scan-sexps'.
+          (forward-sexp -1)
+          (setq start-pos (1- (point)))
+          ;; TODO: Handle vector literals.
+          ;; TODO: handle ' and `.
+          (if (consp form)
+              ;; Recursively read the subelement of the form.
+              (let ((subforms nil)
+                    (next-subform (refs--read-with-positions buffer (1+ start-pos))))
+                (while next-subform
+                  (push next-subform subforms)
+                  (setq next-subform
+                        (refs--read-with-positions
+                         buffer (-last-item next-subform))))
+                (list (nreverse subforms) start-pos end-pos))
+            ;; This form is an atom, so we're done.
+            (list form start-pos end-pos)))
+      ;; reached a closing paren.
+      (invalid-read-syntax nil))))
 
 (defun refs--read-all-forms (buffer)
   "Return a list of all the forms in BUFFER, with the string
