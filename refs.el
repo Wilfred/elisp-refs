@@ -62,6 +62,7 @@ OFFSETS."
           ;; TODO: handle ' and `.
           ;; TODO: test for handling dotted lists.
           (when (consp form)
+            ;; TODO: don't recursve if car or cdr are symbols.
             ;; Recursively read the subelements of the form.
             (let ((next-subform (refs--read-with-offsets
                                  string offsets (1+ form-start-offset))))
