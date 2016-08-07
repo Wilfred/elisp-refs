@@ -138,18 +138,44 @@ Where the file was a .elc, return the path to the .el file instead."
               (t nil)))
       elc-paths))))
 
+(defun refs--file-contents (path)
+  "Return the contents of PATH as a string."
+  (with-temp-buffer
+    (insert-file-contents-literally path)
+    (buffer-string)))
+
+(defun refs--show-results (results)
+  "Given a list where each element takes the form \(path . forms\),
+render a friendly results buffer."
+  ;; TODO: separate buffer per search.
+  (let ((buf (get-buffer-create "*refs*")))
+    (switch-to-buffer buf)
+    (erase-buffer)
+    (insert (format "? results in %s files.\n" (length results)))
+    (--each results
+      (-let [(path . forms) it]
+        (insert (format "File: %s\n" (f-short path)))
+        (--each forms
+          (insert (format "%s\n" it)))
+        (insert "\n")))))
+
+;; suggestion: format is a great function to use
+;; TODO: profile me, this is slow.
 (defun refs-function (symbol)
   "Display all the references to SYMBOL, a function."
   (interactive
    ;; TODO: default to function at point.
    (list (read (completing-read "Function: " (refs--functions)))))
 
-  (let* ((buf (get-buffer-create "refs.el"))
-         (forms (refs--read-all-forms buf))
-         (matching-forms (-non-nil
-                          (--mapcat (refs--find-calls it symbol)
-                                    forms))))
-    (message "Found: %s" matching-forms)))
+  ;; TODO: build an index and use the full loaded file list.
+  (let* ((loaded-paths (-slice (refs--loaded-files) 0 3))
+         (loaded-sources (-map #'refs--file-contents loaded-paths))
+         (loaded-forms-and-offsets (-map #'refs--read-all-with-offsets loaded-sources))
+         (loaded-forms (-map #'-first-item loaded-forms-and-offsets))
+         (matching-forms (--map (refs--find-calls it symbol) loaded-forms))
+         (all-paths-and-matches (-zip loaded-paths matching-forms))
+         (paths-and-matches (--filter (consp (cdr it)) all-paths-and-matches)))
+    (refs--show-results paths-and-matches)))
 
 (provide 'refs)
 ;;; refs.el ends here
