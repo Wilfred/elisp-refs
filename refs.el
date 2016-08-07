@@ -63,8 +63,7 @@ OFFSETS."
                       (refs--read-with-positions
                        buffer offsets (refs--end-offset next-subform offsets))))))
           ;; This is lossy: if we read multiple identical forms, we
-          ;; only store the position of the last one. For our
-          ;; purposes, that's fine.
+          ;; only store the position of the last one. TODO: store all.
           (ht-set! offsets form (list start-pos end-pos))
           form)
       ;; reached a closing paren.
