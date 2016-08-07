@@ -160,14 +160,15 @@ render a friendly results buffer."
         (insert "\n")))))
 
 ;; suggestion: format is a great function to use
-;; TODO: profile me, this is slow.
 (defun refs-function (symbol)
   "Display all the references to SYMBOL, a function."
   (interactive
    ;; TODO: default to function at point.
    (list (read (completing-read "Function: " (refs--functions)))))
 
-  ;; TODO: build an index and use the full loaded file list.
+  ;; TODO: build an index, since reading with offsets for >5 KLOC is slow.
+  ;; TODO: profile refs--read-all-with-offsets
+  ;; TODO: use the full loaded file list.
   (let* ((loaded-paths (-slice (refs--loaded-files) 0 3))
          (loaded-sources (-map #'refs--file-contents loaded-paths))
          (loaded-forms-and-offsets (-map #'refs--read-all-with-offsets loaded-sources))
