@@ -129,13 +129,13 @@ Where the file was a .elc, return the path to the .el file instead."
   (let ((elc-paths (-map #'-first-item load-history)))
     (-non-nil
      (--map
-      (if (s-ends-with-p ".el" it) it
-        (let ((el-name (format "%s.el" (f-no-ext it)))
-              (el-gz-name (format "%s.el.gz" (f-no-ext it))))
-          (cond ((f-exists? el-name) el-name)
-                ((f-exists? el-gz-name) el-gz-name)
-                ;; Ignore files where we can't find a .el file.
-                (t nil))))
+      (let ((el-name (format "%s.el" (f-no-ext it)))
+            (el-gz-name (format "%s.el.gz" (f-no-ext it))))
+        (cond ((f-exists? el-name) el-name)
+              ;; TODO: make refs--file-contents handle gzipped files.
+              ;; ((f-exists? el-gz-name) el-gz-name)
+              ;; Ignore files where we can't find a .el file.
+              (t nil)))
       elc-paths))))
 
 (defun refs-function (symbol)
