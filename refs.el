@@ -60,6 +60,7 @@ OFFSETS."
             (setq form-start-offset (refs--find-start-offset string end-offset)))
           ;; TODO: Handle vector literals.
           ;; TODO: handle ' and `.
+          ;; TODO: test for handling dotted lists.
           (when (consp form)
             ;; Recursively read the subelements of the form.
             (let ((next-subform (refs--read-with-offsets
