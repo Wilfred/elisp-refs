@@ -105,7 +105,7 @@ ignored."
    ((and (consp form) (eq (car form) symbol))
     (list form))
    ;; Recurse, so we can find (... (symbol ...) ...)
-   ((consp form)
+   ((and (consp form) (not (list-utils-improper-p form)))
     (-non-nil (--mapcat (refs--find-calls-1 it symbol) form)))
    ;; If it's not a cons cell, it's not a call.
    (t
