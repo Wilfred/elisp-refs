@@ -50,22 +50,27 @@ Assumes that START-OFFSET is not inside a string or comment.
 For each subform, record the start and end offsets in hash table
 OFFSETS."
   (condition-case _err
-      (progn
-        (-let* (((form . end-offset) (read-from-string string start-offset))
-                (start-offset (refs--find-start-offset string end-offset)))
+      (let (form-start-offset)
+        (-let* ((read-with-symbol-positions t)
+                ((form . end-offset) (read-from-string string start-offset)))
+          ;; `read-from-string' sets `read-symbol-positions-list' for
+          ;; symbols, so we don't need to any more work.
+          (-if-let (sym-and-start-offset (assoc form read-symbol-positions-list))
+              (setq form-start-offset (+ (cdr sym-and-start-offset) start-offset))
+            (setq form-start-offset (refs--find-start-offset string end-offset)))
           ;; TODO: Handle vector literals.
           ;; TODO: handle ' and `.
           (when (consp form)
             ;; Recursively read the subelements of the form.
             (let ((next-subform (refs--read-with-offsets
-                                 string offsets (1+ start-offset))))
+                                 string offsets (1+ form-start-offset))))
               (while next-subform
                 (setq next-subform
                       (refs--read-with-offsets
                        string offsets (refs--end-offset next-subform offsets))))))
           ;; This is lossy: if we read multiple identical forms, we
           ;; only store the position of the last one. TODO: store all.
-          (ht-set! offsets form (list start-offset end-offset))
+          (ht-set! offsets form (list form-start-offset end-offset))
           form))
     ;; reached a closing paren.
     (invalid-read-syntax nil)))
