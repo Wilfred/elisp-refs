@@ -31,42 +31,46 @@
 (require 'f)
 (require 'ht)
 
-(defun refs--read-with-offsets (buffer offsets start)
-  "Read a form from BUFFER, starting from offset START.
-Assumes that START is not inside a string or comment.
+(defun refs--find-start-offset (string sexp-end)
+  "Find the matching start offset in STRING for
+sexp ending at SEXP-END."
+  (with-temp-buffer
+    (insert string)
+    ;; Point is 1-indexed.
+    (goto-char (1+ sexp-end))
+    ;; TODO: write in terms of `scan-sexps'.
+    (forward-sexp -1)
+    (1- (point))))
+
+(defun refs--read-with-offsets (string offsets start-offset)
+  "Read a form from STRING, starting from offset START-OFFSET.
+Assumes that START-OFFSET is not inside a string or comment.
 
 For each subform, record the start and end offsets in hash table
 OFFSETS."
-  (with-current-buffer buffer
-    (goto-char (1+ start))
-    (condition-case _err
-        (let* (start-pos
-               ;; `read' moves point to the end of the current form.
-               (form (read buffer))
-               (end-pos (1- (point))))
-          ;; TODO: write in terms of `scan-sexps'.
-          (forward-sexp -1)
-          (setq start-pos (1- (point)))
-
+  (condition-case _err
+      (progn
+        (-let* (((form . end-offset) (read-from-string string start-offset))
+                (start-offset (refs--find-start-offset string end-offset)))
           ;; TODO: Handle vector literals.
           ;; TODO: handle ' and `.
           (when (consp form)
-            ;; Recursively read the subelement of the form.
+            ;; Recursively read the subelements of the form.
             (let ((next-subform (refs--read-with-offsets
-                                 buffer offsets (1+ start-pos))))
+                                 string offsets (1+ start-offset))))
               (while next-subform
                 (setq next-subform
                       (refs--read-with-offsets
-                       buffer offsets (refs--end-offset next-subform offsets))))))
+                       string offsets (refs--end-offset next-subform offsets))))))
           ;; This is lossy: if we read multiple identical forms, we
           ;; only store the position of the last one. TODO: store all.
-          (ht-set! offsets form (list start-pos end-pos))
-          form)
-      ;; reached a closing paren.
-      (invalid-read-syntax nil))))
+          (ht-set! offsets form (list start-offset end-offset))
+          form))
+    ;; reached a closing paren.
+    (invalid-read-syntax nil)))
 
-(defun refs--read-all-with-offsets (buffer)
-  "Read all the forms from BUFFER.
+(defun refs--read-all-with-offsets (string)
+  "Read all the forms from STRING.
 We return a list of all the forms, along with a hash table
 mapping each form to its start and end offset."
   (let ((offsets (ht-create))
@@ -75,7 +79,7 @@ mapping each form to its start and end offset."
     ;; Read forms until we hit EOF, which raises an error.
     (ignore-errors
       (while t
-        (let ((form (refs--read-with-offsets buffer offsets pos)))
+        (let ((form (refs--read-with-offsets string offsets pos)))
           (push form forms)
           (setq pos (refs--end-offset form offsets)))))
     (list (nreverse forms) offsets)))
