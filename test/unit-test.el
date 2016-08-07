@@ -38,16 +38,10 @@
 
 (ert-deftest refs-find-calls ()
   "Ensure we can find top level calls and calls inside functions."
-  (let (indexed-forms)
-    (with-temp-buffer
-      (insert "(foo 1)\n")
-      (insert "(defun bar () (foo))")
-      (setq indexed-forms (refs--read-all-with-positions (current-buffer))))
+  (-let [(forms offsets) (refs--read-all-from-string "(foo 1)\n(defun bar () (foo))")]
     (should
      (equal
-      (refs--find-calls indexed-forms 'foo)
+      (refs--find-calls forms 'foo)
       (list
-       ;; Calling (foo 1)
-       '(((foo 1 4) (1 5 6)) 0 7)
-       ;; Calling (foo)
-       '(((foo 23 26)) 22 27))))))
+       '(foo 1)
+       '(foo))))))
