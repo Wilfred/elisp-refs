@@ -6,9 +6,9 @@
   "Read all the forms from STRING, along with their offsets."
   (with-temp-buffer
     (insert string)
-    (refs--read-all-with-positions (current-buffer))))
+    (refs--read-all-with-offsets (current-buffer))))
 
-(ert-deftest refs-read-with-positions-whitespace ()
+(ert-deftest refs-read-with-offsets-whitespace ()
   "Form offsets should be where the sexp starts, even if there's whitespace."
   (-let [(forms offsets) (refs--read-all-from-string " foo ")]
     (should
@@ -16,7 +16,7 @@
     (should
      (ht-equal? offsets (ht ('foo (list 1 4)))))))
 
-(ert-deftest refs-read-with-positions-recurse ()
+(ert-deftest refs-read-with-offsets-recurse ()
   "Ensure we return offsets of list items too."
   (-let [(forms offsets) (refs--read-all-from-string "(bar baz)")]
     (should
@@ -26,7 +26,7 @@
                             ('bar (list 1 4))
                             ('baz (list 5 8)))))))
 
-(ert-deftest refs-read-with-positions-multiple ()
+(ert-deftest refs-read-with-offsets-multiple ()
   "Ensure we read multiple sexps from the buffer."
   (-let [(forms offsets) (refs--read-all-from-string "10 20 30")]
     (should
