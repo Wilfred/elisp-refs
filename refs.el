@@ -178,5 +178,20 @@ render a friendly results buffer."
          (paths-and-matches (--filter (consp (cdr it)) all-paths-and-matches)))
     (refs--show-results paths-and-matches)))
 
+(defun refs--bench-read ()
+  "Measure runtime of reading a large file."
+  (interactive)
+  (let ((start-time (current-time))
+        end-time)
+    (refs--read-all-with-offsets
+     (refs--file-contents "/home/wilfred/src/lispy/lispy.el"))
+    (setq end-time (current-time))
+    (let ((start-time-secs (+ (cl-second start-time)
+                              (/ (float (cl-third start-time)) 1000000)))
+          (end-time-secs (+ (cl-second end-time)
+                            (/ (float (cl-third end-time)) 1000000))))
+      (message "Took %s seconds"
+               (- end-time-secs start-time-secs)))))
+
 (provide 'refs)
 ;;; refs.el ends here
