@@ -98,6 +98,7 @@ Returns nil otherwise.
 This is basic static analysis, so indirect function calls are
 ignored."
   ;; TODO: Handle funcall to static symbols too.
+  ;; TODO: Handle sharp-quoted function references.
   ;; TODO: (defun foo (bar baz)) is not a function call to bar.
   (cond
    ;; Base case: are we looking at (symbol ...)?
