@@ -30,6 +30,19 @@
                             (20 (list 3 5))
                             (30 (list 6 8)))))))
 
+(ert-deftest refs-read-with-offsets-quote ()
+  "We should be able to read forms that contain quotes."
+  ;; TODO: verify offsets too (they're currently wrong).
+  (-let [(forms offsets) (refs--read-all-with-offsets "'foo")]
+    (should
+     (equal forms '('foo))))
+  (-let [(forms offsets) (refs--read-all-with-offsets "(quote foo)")]
+    (should
+     (equal forms '('foo))))
+  (-let [(forms offsets) (refs--read-all-with-offsets "'(foo)")]
+    (should
+     (equal forms '('(foo))))))
+
 (ert-deftest refs-find-calls ()
   "Ensure we can find top level calls and calls inside functions."
   (-let [(forms offsets) (refs--read-all-with-offsets "(foo 1)\n(defun bar () (foo))")]

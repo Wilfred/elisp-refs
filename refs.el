@@ -41,6 +41,8 @@ sexp ending at SEXP-END."
     (goto-char (1+ sexp-end))
     ;; TODO: write in terms of `scan-sexps'.
     (forward-sexp -1)
+    (when (looking-back "'")
+      (forward-char -1))
     (1- (point))))
 
 (defun refs--end-offset (form offsets)
@@ -64,9 +66,10 @@ OFFSETS."
               (setq form-start-offset (+ (cdr sym-and-start-offset) start-offset))
             (setq form-start-offset (refs--find-start-offset string end-offset)))
           ;; TODO: Handle vector literals.
-          ;; TODO: handle ' and `.
+          ;; TODO: handle sharp quotes and backquotes.
           ;; TODO: test for handling dotted lists.
-          (when (consp form)
+          ;; TODO: we should still recurse on the cdr of quoted lists
+          (when (and (consp form) (not (eq (car form) 'quote)))
             ;; TODO: don't recursve if car or cdr are symbols.
             ;; Recursively read the subelements of the form.
             (let ((next-subform (refs--read-with-offsets
