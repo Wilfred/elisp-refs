@@ -43,6 +43,19 @@
     (should
      (equal forms '('(foo))))))
 
+(ert-deftest refs-read-with-offsets-backquote ()
+  "We should be able to read forms that contain backquotes."
+  ;; TODO: verify offsets too (they're currently wrong).
+  (-let [(forms offsets) (refs--read-all-with-offsets "`foo")]
+    (should
+     (equal forms '(`foo))))
+  (-let [(forms offsets) (refs--read-all-with-offsets "(backquote foo)")]
+    (should
+     (equal forms '((backquote foo)))))
+  (-let [(forms offsets) (refs--read-all-with-offsets "`(foo)")]
+    (should
+     (equal forms '(`(foo))))))
+
 (ert-deftest refs-find-calls ()
   "Ensure we can find top level calls and calls inside functions."
   (-let [(forms offsets) (refs--read-all-with-offsets "(foo 1)\n(defun bar () (foo))")]
