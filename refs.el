@@ -47,6 +47,19 @@ Positions are 1-indexed, consistent with `point'."
          (start-pos (refs--start-pos end-pos)))
     (list form start-pos end-pos)))
 
+(defun refs--read-all-buffer-forms ()
+  (goto-char (point-min))
+  (let ((forms nil))
+    (condition-case err
+        (while t
+          (push (refs--read-buffer-form) forms))
+      (error
+       (if (equal err '(end-of-file))
+           ;; Reached end of file, we're done.
+           (nreverse forms)
+         ;; Some other, unexpected error, re-raise.
+         (error err))))))
+
 (defun refs--find-start-offset (string sexp-end)
   "Find the matching start offset in STRING for
 sexp ending at SEXP-END."
