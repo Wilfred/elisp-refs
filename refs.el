@@ -32,6 +32,11 @@
 (require 'f)
 (require 'ht)
 
+(defsubst refs--start-pos (end-pos)
+  "Find the start position of form ending at END-FORM
+in the current buffer."
+  (scan-sexps end-pos -1))
+
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
 Returns a list (form start-pos end-pos).
@@ -39,7 +44,7 @@ Returns a list (form start-pos end-pos).
 Positions are 1-indexed, consistent with `point'."
   (let* ((form (read (current-buffer)))
          (end-pos (point))
-         (start-pos (scan-sexps end-pos -1)))
+         (start-pos (refs--start-pos end-pos)))
     (list form start-pos end-pos)))
 
 (defun refs--find-start-offset (string sexp-end)
