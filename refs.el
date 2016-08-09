@@ -37,20 +37,21 @@
 in the current buffer."
   (scan-sexps end-pos -1))
 
-(defun refs--paren-positions (start-pos end-pos)
-  "Find all parenthesised expressions between START-POS and END-POS,
-and return a list of their positions."
-  (goto-char start-pos)
-  (let ((paren-positions nil))
-    (loop-while t
-      ;; `parse-partial-sexp' moves point to the end of the first subform
-      (let* ((ppss (parse-partial-sexp (1+ (point)) end-pos 0))
-             (form-start-pos (nth 2 ppss))
-             (form-end-pos (point)))
-        (when (null form-start-pos)
-          (loop-break))
-        (push (list form-start-pos form-end-pos) paren-positions)))
-    (nreverse paren-positions)))
+(defun refs--paren-positions (buffer start-pos end-pos)
+  "Find all parenthesised expressions between START-POS and END-POS
+in BUFFER, and return a list of their positions."
+  (with-current-buffer buffer
+    (goto-char start-pos)
+    (let ((paren-positions nil))
+      (loop-while t
+        ;; `parse-partial-sexp' moves point to the end of the first subform
+        (let* ((ppss (parse-partial-sexp (1+ (point)) end-pos 0))
+               (form-start-pos (nth 2 ppss))
+               (form-end-pos (point)))
+          (when (null form-start-pos)
+            (loop-break))
+          (push (list form-start-pos form-end-pos) paren-positions)))
+      (nreverse paren-positions))))
 
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
