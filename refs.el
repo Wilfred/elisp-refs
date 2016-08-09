@@ -61,7 +61,7 @@ Positions are 1-indexed, consistent with `point'."
   (let* ((form (read (current-buffer)))
          (end-pos (point))
          (start-pos (refs--start-pos end-pos)))
-    (list form start-pos end-pos (refs--paren-positions start-pos end-pos))))
+    (list form start-pos end-pos)))
 
 (defun refs--read-all-buffer-forms ()
   (goto-char (point-min))
