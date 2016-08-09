@@ -60,6 +60,22 @@ Positions are 1-indexed, consistent with `point'."
          ;; Some other, unexpected error, re-raise.
          (error err))))))
 
+(defun refs--paren-positions (start-pos end-pos)
+  "Find all parenthesised expressions between START-POS and END-POS,
+and return a list of their positions."
+  (goto-char start-pos)
+  (let ((paren-positions nil))
+    (loop-while t
+      ;; `parse-partial-sexp' moves point to the end of the first subform
+      (let* ((ppss (parse-partial-sexp (1+ (point)) end-pos 0))
+             (form-start-pos (nth 2 ppss))
+             (form-end-pos (point))
+             (min-paren-depth (nth 6 ppss)))
+        (when (null form-start-pos)
+          (loop-break))
+        (push (list form-start-pos form-end-pos) paren-positions)))
+    (nreverse paren-positions)))
+
 (defun refs--find-start-offset (string sexp-end)
   "Find the matching start offset in STRING for
 sexp ending at SEXP-END."
