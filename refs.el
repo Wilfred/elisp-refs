@@ -223,11 +223,12 @@ Where the file was a .elc, return the path to the .el file instead."
               (t nil)))
       elc-paths))))
 
-(defun refs--file-contents (path)
-  "Return the contents of PATH as a string."
-  (with-temp-buffer
-    (insert-file-contents-literally path)
-    (buffer-string)))
+(defun refs--contents-buffer (path)
+  "Read PATH into a disposable buffer, and return it."
+  (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
+    (with-current-buffer fresh-buffer
+      (insert-file-contents-literally path))
+    fresh-buffer))
 
 (defun refs--show-results (results)
   "Given a list where each element takes the form \(path . forms\),
