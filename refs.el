@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.1
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (ht "2.1") (list-utils "0.4.4"))
+;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (ht "2.1") (list-utils "0.4.4") (loop "2.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
 (require 'dash)
 (require 'f)
 (require 'ht)
+(require 'loop)
+(eval-when-compile (require 'cl-lib))
 
 (defsubst refs--start-pos (end-pos)
   "Find the start position of form ending at END-FORM
@@ -146,10 +148,10 @@ mapping each form to its start and end offset."
           (setq pos (refs--end-offset form offsets)))))
     (list (nreverse forms) offsets)))
 
-;; TODO: factor out a flat map, and a map that saves us destructuring
-;; indexed forms everywhere.
-(defun refs--find-calls-1 (form symbol)
-  "If FORM contains any calls to SYMBOL, return those subforms.
+(defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
+  "If FORM contains any calls to SYMBOL, return those subforms, along
+with their start and end positions.
+
 Returns nil otherwise.
 
 This is basic static analysis, so indirect function calls are
@@ -160,17 +162,42 @@ ignored."
   (cond
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
-    (list form))
+    (list form start-pos end-pos))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))
-    (-non-nil (--mapcat (refs--find-calls-1 it symbol) form)))
-   ;; If it's not a cons cell, it's not a call.
+    (message "at start pos: %s" start-pos)
+    (let ((list-positions (refs--paren-positions buffer start-pos end-pos))
+          (lists-seen 0)
+          (found-calls nil))
+      ;; Iterate through the subforms, calculating matching paren
+      ;; positions so we know where we are in the source.
+      (dolist (subform form (nreverse found-calls))
+        ;; TODO: what if the syntax contains dotted lists?
+        ;; e.g. "(foo . (bar . baz))" has more paren pairs than lists.
+        (when (consp subform)
+          (let* ((subform-start-end (nth lists-seen list-positions))
+                 (subform-start (car subform-start-end))
+                 (subform-end (cadr subform-start-end)))
+            (push
+             (refs--find-calls-1 buffer subform
+                                 subform-start subform-end symbol)
+             found-calls))
+          (cl-incf lists-seen)))))
+   ;; If it's not a cons cell, it's definitely not a call.
    (t
     nil)))
 
-(defun refs--find-calls (forms symbol)
-  "If FORMS contains any calls to SYMBOL, return those subforms."
-  (--mapcat (refs--find-calls-1 it symbol) forms))
+(defun refs--find-calls (forms-with-positions buffer symbol)
+  "If FORMS-WITH-POSITIONS contain any calls to SYMBOL,
+return those subforms, along with their positions."
+  (--mapcat
+   ;; TODO: Use -let and destructuring to simplify this, and likewise
+   ;; with cadr above.
+   (let ((form (nth 0 it))
+         (start-pos (nth 1 it))
+         (end-pos (nth 2 it)))
+     (refs--find-calls-1 buffer form start-pos end-pos symbol))
+   forms-with-positions))
 
 (defun refs--functions ()
   "Return a list of all symbols that are variables."
