@@ -49,8 +49,9 @@ in BUFFER, and return a list of their positions."
         ;; `parse-partial-sexp' moves point to the end of the first subform
         (let* ((ppss (parse-partial-sexp (1+ (point)) end-pos 0))
                (form-start-pos (nth 2 ppss))
-               (form-end-pos (point)))
-          (when (null form-start-pos)
+               (form-end-pos (point))
+               (min-paren-depth (nth 6 ppss)))
+          (when (or (null form-start-pos) (< min-paren-depth 0))
             (loop-break))
           (push (list form-start-pos form-end-pos) paren-positions)))
       (nreverse paren-positions))))
