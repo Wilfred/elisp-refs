@@ -150,6 +150,11 @@ mapping each form to its start and end offset."
           (setq pos (refs--end-offset form offsets)))))
     (list (nreverse forms) offsets)))
 
+(defun refs--no-paren-literal-p (form)
+  "Return t if FORM can be written as a literal without parens."
+  (let* ((car (car form)))
+    (or (eq car 'quote) (eq car 'function))))
+
 (defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
   "If FORM contains any calls to SYMBOL, return those subforms, along
 with their start and end positions.
@@ -167,16 +172,21 @@ ignored."
     (list form start-pos end-pos))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))
-    (message "at start pos: %s" start-pos)
     (let ((list-positions (refs--paren-positions buffer start-pos end-pos))
           (lists-seen 0)
           (found-calls nil))
       ;; Iterate through the subforms, calculating matching paren
       ;; positions so we know where we are in the source.
-      (dolist (subform form (nreverse found-calls))
-        ;; TODO: what if the syntax contains dotted lists?
-        ;; e.g. "(foo . (bar . baz))" has more paren pairs than lists.
-        (when (consp subform)
+      (dolist (subform form (-non-nil (nreverse found-calls)))
+        ;; TODO: what if the syntax contains dotted lists?  e.g. "(foo
+        ;; . (bar . baz))" has more paren pairs than lists.  Likewise
+        ;; we can't distinguish between "'foo" and "(quote foo)".
+        ;; without looking at read-symbol-positions-list and seeing if
+        ;; the previous non-whitespace character was a '.
+        ;;
+        ;; Skip (quote foo), because if it takes the form 'foo,
+        ;; there are no paren positions for us.
+        (when (and (consp subform) (refs--no-paren-literal-p subform))
           (let* ((subform-start-end (nth lists-seen list-positions))
                  (subform-start (car subform-start-end))
                  (subform-end (cadr subform-start-end)))
