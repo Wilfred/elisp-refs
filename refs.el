@@ -169,7 +169,7 @@ ignored."
   (cond
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
-    (list form start-pos end-pos))
+    (list (list form start-pos end-pos)))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))
     (let ((list-positions (refs--paren-positions buffer start-pos end-pos))
@@ -177,7 +177,7 @@ ignored."
           (found-calls nil))
       ;; Iterate through the subforms, calculating matching paren
       ;; positions so we know where we are in the source.
-      (dolist (subform form (-non-nil (nreverse found-calls)))
+      (dolist (subform form (-non-nil (apply #'append (nreverse found-calls))))
         ;; TODO: what if the syntax contains dotted lists?  e.g. "(foo
         ;; . (bar . baz))" has more paren pairs than lists.  Likewise
         ;; we can't distinguish between "'foo" and "(quote foo)".
