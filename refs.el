@@ -150,7 +150,7 @@ mapping each form to its start and end offset."
           (setq pos (refs--end-offset form offsets)))))
     (list (nreverse forms) offsets)))
 
-(defun refs--no-paren-literal-p (form)
+(defun refs--could-be-literal-p (form)
   "Return t if FORM can be written as a literal without parens."
   (let* ((car (car form)))
     (or (eq car 'quote) (eq car 'function))))
@@ -186,7 +186,7 @@ ignored."
         ;;
         ;; Skip (quote foo), because if it takes the form 'foo,
         ;; there are no paren positions for us.
-        (when (and (consp subform) (refs--no-paren-literal-p subform))
+        (when (and (consp subform) (not (refs--could-be-literal-p subform)))
           (let* ((subform-start-end (nth lists-seen list-positions))
                  (subform-start (car subform-start-end))
                  (subform-end (cadr subform-start-end)))
