@@ -41,7 +41,8 @@ in the current buffer."
 
 (defun refs--paren-positions (buffer start-pos end-pos)
   "Find all parenthesised expressions between START-POS and END-POS
-in BUFFER, and return a list of their positions."
+(exclusive, excluding ends) in BUFFER, and return a list of their
+positions."
   (with-current-buffer buffer
     (goto-char start-pos)
     (let ((paren-positions nil))
