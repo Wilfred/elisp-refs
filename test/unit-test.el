@@ -15,8 +15,14 @@
       (refs--paren-positions (current-buffer) (point-min) (point-max))
       '((3 8) (9 14))))))
 
-(ert-deftest refs-paren-positions-basic ()
+(ert-deftest refs-paren-positions-quoted ()
   (with-temp-buffer-contents "(defcustom lispy-no-space nil\n  :group 'lispy)"
+    (should
+     (null
+      (refs--paren-positions (current-buffer) (point-min) (point-max))))))
+
+(ert-deftest refs-paren-positions-require ()
+  (with-temp-buffer-contents "(require 'foo)"
     (should
      (null
       (refs--paren-positions (current-buffer) (point-min) (point-max))))))
