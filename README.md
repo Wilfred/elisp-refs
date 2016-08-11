@@ -20,3 +20,7 @@ Unlike these projects, refs.el considers code loaded in the current
 Emacs instance and requires no manual configuration. It's also smarter
 about detecting function calls (e.g. we can spot `funcall`
 references).
+
+## Similar Projects
+
+[el-search](https://elpa.gnu.org/packages/el-search.html)
