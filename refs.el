@@ -79,7 +79,10 @@ Positions are 1-indexed, consistent with `point'."
           (while t
             (push (refs--read-buffer-form) forms))
         (error
-         (if (equal err '(end-of-file))
+         (if (or (equal err '(end-of-file))
+                 ;; TODO: this shouldn't occur in valid elisp files,
+                 ;; but it's happening in helm-utils.el.
+                 (equal (car err) 'scan-error))
              ;; Reached end of file, we're done.
              (nreverse forms)
            ;; Some unexpected error, propagate.
