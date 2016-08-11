@@ -178,11 +178,19 @@ ignored."
       ;; Iterate through the subforms, calculating matching paren
       ;; positions so we know where we are in the source.
       (dolist (subform form (-non-nil (apply #'append (nreverse found-calls))))
-        ;; TODO: what if the syntax contains dotted lists?  e.g. "(foo
-        ;; . (bar . baz))" has more paren pairs than lists.  Likewise
-        ;; we can't distinguish between "'foo" and "(quote foo)".
-        ;; without looking at read-symbol-positions-list and seeing if
-        ;; the previous non-whitespace character was a '.
+        ;; TODO: what if we're looking at a value that may or may not
+        ;; have had parens?
+        ;;
+        ;; E.g.
+        ;; () vs nil
+        ;; (quote foo) vs 'foo vs ' foo
+        ;; (backquote foo) vs `foo
+        ;; (function foo) vs #'foo
+        ;; (foo . (bar . nil )) vs (foo bar)
+        ;;
+        ;; For quoting variables, we could consider looking at
+        ;; `read-symbol-positions-list' to see if there was a '
+        ;; before. However, it doesn't help us for '(foo) AFAICS.
         ;;
         ;; Skip (quote foo), because if it takes the form 'foo,
         ;; there are no paren positions for us.
