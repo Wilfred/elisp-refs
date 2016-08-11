@@ -39,26 +39,26 @@
 in the current buffer."
   (scan-sexps end-pos -1))
 
-;; TODO: consider using `scap-sexps', cf `el-search--end-of-sexp' in
-;; el-search.el. This would give us positions of *all* sexps, not just
-;; parenthesised literals.
-(defun refs--paren-positions (buffer start-pos end-pos)
-  "Find all parenthesised expressions between START-POS and END-POS
-(exclusive, excluding ends) in BUFFER, and return a list of their
-positions."
-  (with-current-buffer buffer
-    (goto-char start-pos)
-    (let ((paren-positions nil))
-      (loop-while t
-        ;; `parse-partial-sexp' moves point to the end of the first subform
-        (let* ((ppss (parse-partial-sexp (1+ (point)) end-pos 0))
-               (form-start-pos (nth 2 ppss))
-               (form-end-pos (point))
-               (min-paren-depth (nth 6 ppss)))
-          (when (or (null form-start-pos) (< min-paren-depth 0))
-            (loop-break))
-          (push (list form-start-pos form-end-pos) paren-positions)))
-      (nreverse paren-positions))))
+(defun refs--sexp-positions (buffer start-pos end-pos)
+  "Return a list of start and end positions of all the sexps
+between START-POS and END-POS (excluding ends) in BUFFER."
+  (let ((positions nil)
+        (current-pos (1+ start-pos)))
+    (with-current-buffer buffer
+      (condition-case _err
+          ;; Loop until we can't read any more.
+          (loop-while t
+            (let* ((sexp-end-pos (scan-sexps current-pos 1))
+                   (sexp-start-pos (refs--start-pos sexp-end-pos)))
+              (if (< sexp-end-pos end-pos)
+                  ;; This sexp is inside the range requested.
+                  (progn
+                    (push (list sexp-start-pos sexp-end-pos) positions)
+                    (setq current-pos sexp-end-pos))
+                ;; Otherwise, we've reached end the of range.
+                (loop-break))))
+        ;; Terminate when we see "Containing expression ends prematurely"
+        (scan-error (nreverse positions))))))
 
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
@@ -153,11 +153,6 @@ mapping each form to its start and end offset."
           (setq pos (refs--end-offset form offsets)))))
     (list (nreverse forms) offsets)))
 
-(defun refs--could-be-literal-p (form)
-  "Return non-nil if FORM can be written as a literal without parens."
-  (memq (car form) '(quote function \`)))
-
-
 (defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
   "If FORM contains any calls to SYMBOL, return those subforms, along
 with their start and end positions.
@@ -175,37 +170,22 @@ ignored."
     (list (list form start-pos end-pos)))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))
-    (let ((list-positions (refs--paren-positions buffer start-pos end-pos))
-          (lists-seen 0)
+    (let ((sexp-positions (refs--sexp-positions buffer start-pos end-pos))
           (found-calls nil))
       ;; Iterate through the subforms, calculating matching paren
       ;; positions so we know where we are in the source.
-      (dolist (subform form (-non-nil (apply #'append (nreverse found-calls))))
-        ;; TODO: what if we're looking at a value that may or may not
-        ;; have had parens?
-        ;;
-        ;; E.g.
-        ;; () vs nil
-        ;; (quote foo) vs 'foo vs ' foo
-        ;; (backquote foo) vs `foo
-        ;; (function foo) vs #'foo
-        ;; (foo . (bar . nil )) vs (foo bar)
-        ;;
-        ;; For quoting variables, we could consider looking at
-        ;; `read-symbol-positions-list' to see if there was a '
-        ;; before. However, it doesn't help us for '(foo) AFAICS.
-        ;;
-        ;; Skip (quote foo), because if it takes the form 'foo,
-        ;; there are no paren positions for us.
-        (when (and (consp subform) (not (refs--could-be-literal-p subform)))
-          (let* ((subform-start-end (nth lists-seen list-positions))
-                 (subform-start (car subform-start-end))
-                 (subform-end (cadr subform-start-end)))
-            (push
-             (refs--find-calls-1 buffer subform
-                                 subform-start subform-end symbol)
-             found-calls))
-          (cl-incf lists-seen)))))
+      (dolist (subform-and-pos (-zip form sexp-positions))
+        (let ((subform (car subform-and-pos))
+              (subform-start-end (cdr subform-and-pos)))
+          (when (consp subform)
+            (let* ((subform-start (car subform-start-end))
+                   (subform-end (cadr subform-start-end)))
+              (push
+               (refs--find-calls-1 buffer subform
+                                   subform-start subform-end symbol)
+               found-calls)))))
+      ;; Concat any results from the subforms.
+      (-non-nil (apply #'append (nreverse found-calls)))))
    ;; If it's not a cons cell, it's definitely not a call.
    (t
     nil)))
