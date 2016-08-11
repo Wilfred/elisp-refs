@@ -196,14 +196,15 @@ ignored."
 (defun refs--find-calls (forms-with-positions buffer symbol)
   "If FORMS-WITH-POSITIONS contain any calls to SYMBOL,
 return those subforms, along with their positions."
-  (--mapcat
-   ;; TODO: Use -let and destructuring to simplify this, and likewise
-   ;; with cadr above.
-   (let ((form (nth 0 it))
-         (start-pos (nth 1 it))
-         (end-pos (nth 2 it)))
-     (refs--find-calls-1 buffer form start-pos end-pos symbol))
-   forms-with-positions))
+  (-non-nil
+   (--mapcat
+    ;; TODO: Use -let and destructuring to simplify this, and likewise
+    ;; with cadr above.
+    (let ((form (nth 0 it))
+          (start-pos (nth 1 it))
+          (end-pos (nth 2 it)))
+      (refs--find-calls-1 buffer form start-pos end-pos symbol))
+    forms-with-positions)))
 
 (defun refs--functions ()
   "Return a list of all symbols that are variables."
@@ -236,7 +237,7 @@ Where the file was a .elc, return the path to the .el file instead."
     fresh-buffer))
 
 (defun refs--show-results (results)
-  "Given a list where each element takes the form \(path . forms\),
+  "Given a list where each element takes the form \(forms . path\),
 render a friendly results buffer."
   ;; TODO: separate buffer per search.
   (let ((buf (get-buffer-create "*refs*")))
@@ -244,7 +245,7 @@ render a friendly results buffer."
     (erase-buffer)
     (insert (format "? results in %s files.\n" (length results)))
     (--each results
-      (-let [(path . forms) it]
+      (-let [( forms . path) it]
         (insert (format "File: %s\n" (f-short path)))
         (--each forms
           (insert (format "%s\n" it)))
@@ -257,17 +258,17 @@ render a friendly results buffer."
    ;; TODO: default to function at point.
    (list (read (completing-read "Function: " (refs--functions)))))
 
-  ;; TODO: build an index, since reading with offsets for >5 KLOC is slow.
-  ;; TODO: profile refs--read-all-with-offsets
   ;; TODO: use the full loaded file list.
-  (let* ((loaded-paths (-slice (refs--loaded-files) 0 3))
-         (loaded-sources (-map #'refs--file-contents loaded-paths))
-         (loaded-forms-and-offsets (-map #'refs--read-all-with-offsets loaded-sources))
-         (loaded-forms (-map #'-first-item loaded-forms-and-offsets))
-         (matching-forms (--map (refs--find-calls it symbol) loaded-forms))
-         (all-paths-and-matches (-zip loaded-paths matching-forms))
-         (paths-and-matches (--filter (consp (cdr it)) all-paths-and-matches)))
-    (refs--show-results paths-and-matches)))
+  (let* ((loaded-paths (-slice (refs--loaded-files) 0 50))
+         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
+         (matching-forms (--map (refs--find-calls (refs--read-all-buffer-forms it) it symbol)
+                                loaded-src-bufs))
+         (forms-and-paths (-zip matching-forms loaded-paths))
+         ;; Remove paths where we didn't find any matches.
+         (forms-and-paths (--filter (car it) forms-and-paths)))
+    ;; Clean up temporary buffers.
+    (--each loaded-src-bufs (kill-buffer it))
+    (refs--show-results forms-and-paths)))
 
 (defun refs--bench-read ()
   "Measure runtime of reading a large file."
