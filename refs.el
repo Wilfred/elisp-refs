@@ -39,6 +39,9 @@
 in the current buffer."
   (scan-sexps end-pos -1))
 
+;; TODO: consider using `scap-sexps', cf `el-search--end-of-sexp' in
+;; el-search.el. This would give us positions of *all* sexps, not just
+;; parenthesised literals.
 (defun refs--paren-positions (buffer start-pos end-pos)
   "Find all parenthesised expressions between START-POS and END-POS
 (exclusive, excluding ends) in BUFFER, and return a list of their
