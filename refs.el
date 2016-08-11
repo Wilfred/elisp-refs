@@ -151,9 +151,9 @@ mapping each form to its start and end offset."
     (list (nreverse forms) offsets)))
 
 (defun refs--could-be-literal-p (form)
-  "Return t if FORM can be written as a literal without parens."
-  (let* ((car (car form)))
-    (or (eq car 'quote) (eq car 'function))))
+  "Return non-nil if FORM can be written as a literal without parens."
+  (memq (car form) '(quote function \`)))
+
 
 (defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
   "If FORM contains any calls to SYMBOL, return those subforms, along
