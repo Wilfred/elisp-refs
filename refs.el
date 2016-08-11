@@ -168,20 +168,23 @@ Where the file was a .elc, return the path to the .el file instead."
       (insert-file-contents-literally path))
     fresh-buffer))
 
-(defun refs--show-results (results)
+(defun refs--show-results (symbol results)
   "Given a list where each element takes the form \(forms . path\),
 render a friendly results buffer."
-  ;; TODO: separate buffer per search.
-  (let ((buf (get-buffer-create "*refs*")))
+  (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
     (erase-buffer)
-    (insert (format "? results in %s files.\n" (length results)))
+    (insert (format "Found %s results in %s files.\n\n"
+                    (-sum (--map (length (car it)) results))
+                    (length results)))
     (--each results
-      (-let [( forms . path) it]
-        (insert (format "File: %s\n" (f-short path)))
+      (-let [(forms . path) it]
+        (insert (propertize (format "File: %s\n" (f-short path))
+                            'face 'font-lock-comment-face))
         (--each forms
-          (insert (format "%s\n" it)))
-        (insert "\n")))))
+          (insert (format "%s\n" (car it))))
+        (insert "\n")))
+    (goto-char (point-min))))
 
 ;; suggestion: format is a great function to use
 (defun refs-function (symbol)
@@ -200,7 +203,7 @@ render a friendly results buffer."
          (forms-and-paths (--filter (car it) forms-and-paths)))
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))
-    (refs--show-results forms-and-paths)))
+    (refs--show-results symbol forms-and-paths)))
 
 (provide 'refs)
 ;;; refs.el ends here
