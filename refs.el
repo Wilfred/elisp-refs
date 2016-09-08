@@ -70,6 +70,10 @@ Positions are 1-indexed, consistent with `point'."
          (start-pos (refs--start-pos end-pos)))
     (list form start-pos end-pos)))
 
+(defvar refs--path nil
+  "A buffer-local variable used by `refs--contents-buffer'.
+Internal implementation detail.")
+
 (defun refs--read-all-buffer-forms (buffer)
   "Read all the forms in BUFFER, along with their positions."
   (with-current-buffer buffer
@@ -86,7 +90,7 @@ Positions are 1-indexed, consistent with `point'."
              ;; Reached end of file, we're done.
              (nreverse forms)
            ;; Some unexpected error, propagate.
-           (error err)))))))
+           (error "Unexpected error whilst reading %s: %s" refs--path err)))))))
 
 (defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
   "If FORM contains any calls to SYMBOL, return those subforms, along
@@ -162,9 +166,12 @@ Where the file was a .elc, return the path to the .el file instead."
       elc-paths))))
 
 (defun refs--contents-buffer (path)
-  "Read PATH into a disposable buffer, and return it."
+  "Read PATH into a disposable buffer, and return it.
+Works around the fact that Emacs won't allow multiple buffers
+visiting the same file."
   (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
     (with-current-buffer fresh-buffer
+      (setq-local refs--path path)
       (insert-file-contents-literally path))
     fresh-buffer))
 
