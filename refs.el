@@ -177,7 +177,7 @@ visiting the same file."
     fresh-buffer))
 
 (defun refs--show-results (symbol results)
-  "Given a list where each element takes the form \(forms . path\),
+  "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
@@ -187,11 +187,13 @@ render a friendly results buffer."
                     (-sum (--map (length (car it)) results))
                     (length results)))
     (--each results
-      (-let [(forms . path) it]
+      (-let* (((forms . buf) it)
+              (path (with-current-buffer buf refs--path)))
         (insert (propertize (format "File: %s\n" (f-short path))
                             'face 'font-lock-comment-face))
         (--each forms
-          (insert (format "%s\n" (car it))))
+          (-let [(form start-pos end-pos) it]
+            (insert (format "%s %s: %s\n" start-pos end-pos form))))
         (insert "\n")))
     (goto-char (point-min))
     ;; Use special-mode so 'q' kills the buffer.
@@ -214,13 +216,13 @@ render a friendly results buffer."
                               (message "Searched %s/%s files" it-index total-paths))
                             (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
                           loaded-src-bufs))
-         (forms-and-paths (-zip matching-forms loaded-paths))
+         (forms-and-bufs (-zip matching-forms loaded-src-bufs))
          ;; Remove paths where we didn't find any matches.
-         (forms-and-paths (--filter (car it) forms-and-paths)))
+         (forms-and-bufs (--filter (car it) forms-and-bufs)))
     (message "Searched %s/%s files" total-paths total-paths)
+    (refs--show-results symbol forms-and-bufs)
     ;; Clean up temporary buffers.
-    (--each loaded-src-bufs (kill-buffer it))
-    (refs--show-results symbol forms-and-paths)))
+    (--each loaded-src-bufs (kill-buffer it))))
 
 (provide 'refs)
 ;;; refs.el ends here
