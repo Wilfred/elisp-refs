@@ -173,7 +173,7 @@ visiting the same file."
   (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
     (with-current-buffer fresh-buffer
       (setq-local refs--path path)
-      (insert-file-contents-literally path))
+      (insert-file-contents path))
     fresh-buffer))
 
 (defun refs--show-results (symbol results)
