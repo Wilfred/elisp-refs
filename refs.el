@@ -184,7 +184,10 @@ render a friendly results buffer."
         (--each forms
           (insert (format "%s\n" (car it))))
         (insert "\n")))
-    (goto-char (point-min))))
+    (goto-char (point-min))
+    ;; Use special-mode so 'q' kills the buffer.
+    (special-mode)
+    (setq buffer-read-only t)))
 
 ;; suggestion: format is a great function to use
 (defun refs-function (symbol)
