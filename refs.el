@@ -181,6 +181,7 @@ visiting the same file."
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
+    (setq buffer-read-only nil)
     (erase-buffer)
     (insert (format "Found %s results in %s files.\n\n"
                     (-sum (--map (length (car it)) results))
