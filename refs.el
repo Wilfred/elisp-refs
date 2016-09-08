@@ -205,14 +205,19 @@ render a friendly results buffer."
    ;; TODO: default to function at point.
    (list (read (completing-read "Function: " (refs--functions)))))
 
-  ;; TODO: use the full loaded file list.
-  (let* ((loaded-paths (-slice (refs--loaded-files) 0 50))
+  (let* ((loaded-paths (refs--loaded-files))
+         (total-paths (length loaded-paths))
          (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
-         (matching-forms (--map (refs--find-calls (refs--read-all-buffer-forms it) it symbol)
-                                loaded-src-bufs))
+         (matching-forms (--map-indexed
+                          (progn
+                            (when (zerop (mod it-index 10))
+                              (message "Searched %s/%s files" it-index total-paths))
+                            (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
+                          loaded-src-bufs))
          (forms-and-paths (-zip matching-forms loaded-paths))
          ;; Remove paths where we didn't find any matches.
          (forms-and-paths (--filter (car it) forms-and-paths)))
+    (message "Searched %s/%s files" total-paths total-paths)
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))
     (refs--show-results symbol forms-and-paths)))
