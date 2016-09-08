@@ -198,7 +198,7 @@ propertize them."
     ;; Find the positions where we want to start the match
     ;; highlighting.
     (let* ((match-start (- start-pos section-start))
-           (match-end (- section-end section-start)))
+           (match-end (- end-pos section-start)))
       (concat (substring section 0 match-start)
               (propertize (substring section match-start match-end)
                           'face 'font-lock-variable-name-face)
