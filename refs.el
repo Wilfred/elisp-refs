@@ -90,7 +90,8 @@ Internal implementation detail.")
              ;; Reached end of file, we're done.
              (nreverse forms)
            ;; Some unexpected error, propagate.
-           (error "Unexpected error whilst reading %s: %s" refs--path err)))))))
+           (error "Unexpected error whilst reading %s position %s: %s"
+                  (f-abbrev refs--path) (point) err)))))))
 
 (defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
   "If FORM contains any calls to SYMBOL, return those subforms, along
