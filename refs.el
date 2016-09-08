@@ -176,6 +176,36 @@ visiting the same file."
       (insert-file-contents path))
     fresh-buffer))
 
+;; TODO: rename to :-extract-snippet.
+(defun refs--containing-lines (buffer start-pos end-pos)
+  "Return a string, all the lines in BUFFER that are between
+START-POS and END-POS (inclusive).
+
+For the characters that are between START-POS and END-POS,
+propertize them."
+  (let (section-start section-end section)
+    (with-current-buffer buffer
+      ;; Expand START-POS and END-POS to line boundaries.
+      (goto-char start-pos)
+      (beginning-of-line)
+      (setq section-start (point))
+      (goto-char end-pos)
+      (end-of-line)
+      (setq section-end (point))
+
+      ;; Extract the section we're interested in.
+      (setq section (buffer-substring section-start section-end)))
+    ;; Find the positions where we want to start the match
+    ;; highlighting.
+    (let* ((match-start (- start-pos section-start))
+           (match-end (- section-end section-start)))
+      (concat (substring section 0 match-start)
+              (propertize (substring section match-start match-end)
+                          'face 'font-lock-variable-name-face)
+              (substring section match-end)))))
+
+;; TODO: find proper faces for results buffer rather than
+;; types and variables.
 (defun refs--show-results (symbol results)
   "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
@@ -190,10 +220,10 @@ render a friendly results buffer."
       (-let* (((forms . buf) it)
               (path (with-current-buffer buf refs--path)))
         (insert (propertize (format "File: %s\n" (f-short path))
-                            'face 'font-lock-comment-face))
+                            'face 'font-lock-type-face))
         (--each forms
-          (-let [(form start-pos end-pos) it]
-            (insert (format "%s %s: %s\n" start-pos end-pos form))))
+          (-let [(_ start-pos end-pos) it]
+            (insert (format "%s\n" (refs--containing-lines buf start-pos end-pos)))))
         (insert "\n")))
     (goto-char (point-min))
     ;; Use special-mode so 'q' kills the buffer.
