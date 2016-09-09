@@ -160,8 +160,7 @@ Where the file was a .elc, return the path to the .el file instead."
       (let ((el-name (format "%s.el" (f-no-ext it)))
             (el-gz-name (format "%s.el.gz" (f-no-ext it))))
         (cond ((f-exists? el-name) el-name)
-              ;; TODO: make refs--file-contents handle gzipped files.
-              ;; ((f-exists? el-gz-name) el-gz-name)
+              ((f-exists? el-gz-name) el-gz-name)
               ;; Ignore files where we can't find a .el file.
               (t nil)))
       elc-paths))))
