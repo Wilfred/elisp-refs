@@ -186,13 +186,17 @@ visiting the same file."
         (font-lock-fontify-buffer)))
     (buffer-string)))
 
-(defun refs--unindent-rigidly (str)
-  "Given an indented string STR, unindent rigidly until
-at least one line has no indent."
-  (let* ((lines (s-lines str))
-         (indents (--map (length (car (s-match (rx bos (+ whitespace)) it)))
+(defun refs--unindent-rigidly (string)
+  "Given an indented STRING, unindent rigidly until
+at least one line has no indent.
+
+Replaces tabs with spaces as a side effect."
+  (let* ((lines (s-lines (s-replace "\t" (s-repeat tab-width " ") string)))
+         (indents (--map (car (s-match (rx bos (+ whitespace)) it))
                          lines))
-         (min-indent (-min indents))
+         (space-indents (--map (s-replace "\t" (s-repeat tab-width " ") (or it ""))
+                               indents))
+         (min-indent (-min (--map (length it) space-indents)))
          (unindented-lines (--map (substring it min-indent) lines)))
     (s-join "\n" unindented-lines)))
 
