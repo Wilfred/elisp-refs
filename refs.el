@@ -200,6 +200,14 @@ Replaces tabs with spaces as a side effect."
          (unindented-lines (--map (substring it min-indent) lines)))
     (s-join "\n" unindented-lines)))
 
+(defun refs--propertize-substring (string start end &rest properties)
+  "Return a copy of STRING with PROPERTIES applied on the
+substring between START and END."
+  (let ((before (substring string 0 start))
+        (mid (substring string start end))
+        (after (substring string end)))
+    (concat before (apply #'propertize mid properties) after)))
+
 ;; TODO: rename to :-extract-snippet.
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -223,7 +231,14 @@ propertize them."
     ;; highlighting.
     (let* ((match-start (- start-pos section-start))
            (match-end (- end-pos section-start)))
-      (refs--syntax-highlight (refs--unindent-rigidly section)))))
+      (-> section
+          ;; Highlight syntax *first*, as that will overwrite any
+          ;; other properties.
+          (refs--syntax-highlight)
+          ;; Underline the matching part.
+          (refs--propertize-substring match-start match-end 'face 'underline)
+          ;; Unindent last, as we don't need match-start any more.
+          (refs--unindent-rigidly)))))
 
 ;; TODO: find proper faces for results buffer rather than
 ;; types and variables.
