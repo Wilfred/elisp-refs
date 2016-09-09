@@ -175,6 +175,17 @@ visiting the same file."
       (insert-file-contents path))
     fresh-buffer))
 
+(defun refs--syntax-highlight (str)
+  "Apply font-lock properties to a string STR of Emacs lisp code."
+  (with-temp-buffer
+    (insert str)
+    (delay-mode-hooks (emacs-lisp-mode))
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (with-no-warnings
+        (font-lock-fontify-buffer)))
+    (buffer-string)))
+
 ;; TODO: rename to :-extract-snippet.
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -198,10 +209,7 @@ propertize them."
     ;; highlighting.
     (let* ((match-start (- start-pos section-start))
            (match-end (- end-pos section-start)))
-      (concat (substring section 0 match-start)
-              (propertize (substring section match-start match-end)
-                          'face 'font-lock-variable-name-face)
-              (substring section match-end)))))
+      (refs--syntax-highlight section))))
 
 ;; TODO: find proper faces for results buffer rather than
 ;; types and variables.
