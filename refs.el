@@ -186,6 +186,16 @@ visiting the same file."
         (font-lock-fontify-buffer)))
     (buffer-string)))
 
+(defun refs--unindent-rigidly (str)
+  "Given an indented string STR, unindent rigidly until
+at least one line has no indent."
+  (let* ((lines (s-lines str))
+         (indents (--map (length (car (s-match (rx bos (+ whitespace)) it)))
+                         lines))
+         (min-indent (-min indents))
+         (unindented-lines (--map (substring it min-indent) lines)))
+    (s-join "\n" unindented-lines)))
+
 ;; TODO: rename to :-extract-snippet.
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -209,7 +219,7 @@ propertize them."
     ;; highlighting.
     (let* ((match-start (- start-pos section-start))
            (match-end (- end-pos section-start)))
-      (refs--syntax-highlight section))))
+      (refs--syntax-highlight (refs--unindent-rigidly section)))))
 
 ;; TODO: find proper faces for results buffer rather than
 ;; types and variables.
