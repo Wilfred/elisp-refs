@@ -32,3 +32,7 @@
 (ert-deftest refs-function ()
   "Smoke test for `refs-function'."
   (refs-function 'format))
+
+(ert-deftest refs-function ()
+  "Smoke test for `refs-macro'."
+  (refs-macro 'when))

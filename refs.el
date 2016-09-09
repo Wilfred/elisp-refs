@@ -151,6 +151,14 @@ return those subforms, along with their positions."
                   (push symbol symbols))))
     symbols))
 
+(defun refs--macros ()
+  "Return a list of all symbols that are macros."
+  (let (symbols)
+    (mapatoms (lambda (symbol)
+                (when (macrop symbol)
+                  (push symbol symbols))))
+    symbols))
+
 (defun refs--loaded-files ()
   "Return a list of all files that have been loaded in Emacs.
 Where the file was a .elc, return the path to the .el file instead."
@@ -290,6 +298,12 @@ render a friendly results buffer."
   (interactive
    ;; TODO: default to function at point.
    (list (read (completing-read "Function: " (refs--functions)))))
+  (refs--search symbol))
+
+(defun refs-macro (symbol)
+  "Display all the references to SYMBOL, a macro."
+  (interactive
+   (list (read (completing-read "Macro: " (refs--macros)))))
   (refs--search symbol))
 
 (provide 'refs)
