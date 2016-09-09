@@ -266,13 +266,8 @@ render a friendly results buffer."
     (special-mode)
     (setq buffer-read-only t)))
 
-;; suggestion: format is a great function to use
-(defun refs-function (symbol)
-  "Display all the references to SYMBOL, a function."
-  (interactive
-   ;; TODO: default to function at point.
-   (list (read (completing-read "Function: " (refs--functions)))))
-
+(defun refs--search (symbol)
+  "Display all the references to SYMBOL, a function or macro."
   (let* ((loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
          (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
@@ -289,6 +284,13 @@ render a friendly results buffer."
     (refs--show-results symbol forms-and-bufs)
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))))
+
+(defun refs-function (symbol)
+  "Display all the references to SYMBOL, a function."
+  (interactive
+   ;; TODO: default to function at point.
+   (list (read (completing-read "Function: " (refs--functions)))))
+  (refs--search symbol))
 
 (provide 'refs)
 ;;; refs.el ends here
