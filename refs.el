@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.1
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (ht "2.1") (list-utils "0.4.4") (loop "2.1"))
+;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (ht "2.1") (list-utils "0.4.4") (loop "2.1") (shut-up "0.3.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 (require 'f)
 (require 'ht)
 (require 'loop)
+(require 'shut-up)
 (eval-when-compile (require 'cl-lib))
 
 (defsubst refs--start-pos (end-pos)
@@ -180,7 +181,7 @@ visiting the same file."
   (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
     (with-current-buffer fresh-buffer
       (setq-local refs--path path)
-      (insert-file-contents path))
+      (shut-up (insert-file-contents path)))
     fresh-buffer))
 
 (defun refs--syntax-highlight (str)
