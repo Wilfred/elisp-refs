@@ -208,14 +208,6 @@ Replaces tabs with spaces as a side effect."
          (unindented-lines (--map (substring it min-indent) lines)))
     (s-join "\n" unindented-lines)))
 
-(defun refs--propertize-substring (string start end &rest properties)
-  "Return a copy of STRING with PROPERTIES applied on the
-substring between START and END."
-  (let ((before (substring string 0 start))
-        (mid (substring string start end))
-        (after (substring string end)))
-    (concat before (apply #'propertize mid properties) after)))
-
 ;; TODO: rename to :-extract-snippet.
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -223,30 +215,30 @@ START-POS and END-POS (inclusive).
 
 For the characters that are between START-POS and END-POS,
 propertize them."
-  (let (section-start section-end section)
+  (let (section-start-pos section-end-pos section)
     (with-current-buffer buffer
       ;; Expand START-POS and END-POS to line boundaries.
       (goto-char start-pos)
       (beginning-of-line)
-      (setq section-start (point))
+      (setq section-start-pos (point))
       (goto-char end-pos)
       (end-of-line)
-      (setq section-end (point))
+      (setq section-end-pos (point))
 
       ;; Extract the section we're interested in.
-      (setq section (buffer-substring section-start section-end)))
+      (setq section (buffer-substring section-start-pos section-end-pos)))
     ;; Find the positions where we want to start the match
     ;; highlighting.
-    (let* ((match-start (- start-pos section-start))
-           (match-end (- end-pos section-start)))
-      (-> section
-          ;; Highlight syntax *first*, as that will overwrite any
-          ;; other properties.
-          (refs--syntax-highlight)
-          ;; Underline the matching part.
-          (refs--propertize-substring match-start match-end 'face 'underline)
-          ;; Unindent last, as we don't need match-start any more.
-          (refs--unindent-rigidly)))))
+    (let* ((match-start (- start-pos section-start-pos))
+           (match-end (- end-pos section-start-pos))
+           (section-before-match (substring section 0 match-start))
+           (section-in-match (substring section match-start match-end))
+           (section-after-match (substring section match-end)))
+      (refs--unindent-rigidly
+       (concat
+        (propertize section-before-match 'face 'font-lock-comment-face)
+        (refs--syntax-highlight section-in-match)
+        (propertize section-after-match 'face 'font-lock-comment-face))))))
 
 ;; TODO: find proper faces for results buffer rather than
 ;; types and variables.

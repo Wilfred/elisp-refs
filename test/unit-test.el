@@ -21,14 +21,6 @@
       (refs--unindent-rigidly "\tx\n    y")
       "    x\ny"))))
 
-(ert-deftest refs--propertize-substring ()
-  "Ensure the string has the same contents after adding properties."
-  (should
-   ;; Note that `equal' ignores properties
-   (equal
-    (refs--propertize-substring "foo bar baz" 4 7 'underline t)
-    "foo bar baz")))
-
 (ert-deftest refs-function ()
   "Smoke test for `refs-function'."
   (refs-function 'format))
