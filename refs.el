@@ -240,8 +240,25 @@ propertize them."
         (refs--syntax-highlight section-in-match)
         (propertize section-after-match 'face 'font-lock-comment-face))))))
 
-;; TODO: find proper faces for results buffer rather than
-;; types and variables.
+(defun refs--find-file (button)
+  "Open the file referenced by BUTTON."
+  (find-file (button-get button 'path))
+  (goto-char (point-min)))
+
+(define-button-type 'refs-path-button
+  'action 'refs--find-file
+  'follow-link t
+  'help-echo "Open file")
+
+(defun refs--path-button (path)
+  "Return a button that navigates to PATH."
+  (with-temp-buffer
+    (insert-text-button
+     (f-abbrev path)
+     :type 'refs-path-button
+     'path path)
+    (buffer-string)))
+
 (defun refs--show-results (symbol results)
   "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
@@ -255,8 +272,9 @@ render a friendly results buffer."
     (--each results
       (-let* (((forms . buf) it)
               (path (with-current-buffer buf refs--path)))
-        (insert (propertize (format "File: %s\n" (f-short path))
-                            'face 'font-lock-type-face))
+        (insert
+         (propertize "File: " 'face 'bold)
+         (refs--path-button path) "\n")
         (--each forms
           (-let [(_ start-pos end-pos) it]
             (insert (format "%s\n" (refs--containing-lines buf start-pos end-pos)))))
