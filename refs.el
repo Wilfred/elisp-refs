@@ -335,5 +335,16 @@ render a friendly results buffer."
   (message "Searching for 'when")
   (refs--print-time (refs--search 'when)))
 
+(defun refs--report-loc ()
+  "Report the total number of lines of code searched."
+  (let* ((loaded-paths (refs--loaded-files))
+         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
+         (total-lines (-sum (--map (with-current-buffer it
+                                     (line-number-at-pos (point-max)))
+                                   loaded-src-bufs))))
+    ;; Clean up temporary buffers.
+    (--each loaded-src-bufs (kill-buffer it))
+    (message "Total LOC: %s" total-lines)))
+
 (provide 'refs)
 ;;; refs.el ends here
