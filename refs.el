@@ -119,8 +119,7 @@ ignored."
         (let ((subform (car subform-and-pos))
               (subform-start-end (cdr subform-and-pos)))
           (when (consp subform)
-            (let* ((subform-start (car subform-start-end))
-                   (subform-end (cadr subform-start-end)))
+            (-let [(subform-start subform-end) subform-start-end]
               (push
                (refs--find-calls-1 buffer subform
                                    subform-start subform-end symbol)
@@ -136,11 +135,7 @@ ignored."
 return those subforms, along with their positions."
   (-non-nil
    (--mapcat
-    ;; TODO: Use -let and destructuring to simplify this, and likewise
-    ;; with cadr above.
-    (let ((form (nth 0 it))
-          (start-pos (nth 1 it))
-          (end-pos (nth 2 it)))
+    (-let [(form start-pos end-pos) it]
       (refs--find-calls-1 buffer form start-pos end-pos symbol))
     forms-with-positions)))
 
