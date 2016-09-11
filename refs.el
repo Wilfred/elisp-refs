@@ -1,4 +1,4 @@
-;;; refs.el --- find callers of elisp functions or macros  -*- lexical-binding: t; -*-
+;;; refs.el --- find callers of elisp functions or macros
 
 ;; Copyright (C) 2016  
 
