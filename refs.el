@@ -63,13 +63,14 @@ between START-POS and END-POS (excluding ends) in BUFFER."
 
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
-Returns a list (form start-pos end-pos).
+Returns a list (form start-pos end-pos symbol-positions).
 
 Positions are 1-indexed, consistent with `point'."
-  (let* ((form (read (current-buffer)))
+  (let* ((read-with-symbol-positions t)
+         (form (read (current-buffer)))
          (end-pos (point))
          (start-pos (refs--start-pos end-pos)))
-    (list form start-pos end-pos)))
+    (list form start-pos end-pos read-symbol-positions-list)))
 
 (defvar refs--path nil
   "A buffer-local variable used by `refs--contents-buffer'.
@@ -135,8 +136,9 @@ ignored."
 return those subforms, along with their positions."
   (-non-nil
    (--mapcat
-    (-let [(form start-pos end-pos) it]
-      (refs--find-calls-1 buffer form start-pos end-pos symbol))
+    (-let [(form start-pos end-pos symbol-positions) it]
+      (when (assoc symbol symbol-positions)
+        (refs--find-calls-1 buffer form start-pos end-pos symbol)))
     forms-with-positions)))
 
 (defun refs--functions ()
