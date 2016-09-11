@@ -312,22 +312,26 @@ render a friendly results buffer."
    (list (read (completing-read "Macro: " (refs--macros)))))
   (refs--search symbol))
 
+(defmacro refs--print-time (&rest body)
+  "Evaluate BODY, and print the time taken."
+  `(let ((start-time (current-time))
+         end-time)
+     ,@body
+     (setq end-time (current-time))
+     (let ((start-time-secs (+ (cl-second start-time)
+                               (/ (float (cl-third start-time)) 1000000)))
+           (end-time-secs (+ (cl-second end-time)
+                             (/ (float (cl-third end-time)) 1000000))))
+       (message "Took %s seconds"
+                (- end-time-secs start-time-secs)))))
+
 (defun refs--bench ()
   "Measure runtime of searching."
   (interactive)
   (message "Searching for 'mod")
-  (let ((start-time (current-time))
-        end-time)
-    (refs--search 'mod)
-    (setq end-time (current-time))
-    (let ((start-time-secs (+ (cl-second start-time)
-                              (/ (float (cl-third start-time)) 1000000)))
-          (end-time-secs (+ (cl-second end-time)
-                            (/ (float (cl-third end-time)) 1000000))))
-      (message "Took %s seconds"
-               (- end-time-secs start-time-secs)))))
-
-
+  (refs--print-time (refs--search 'mod))
+  (message "Searching for 'when")
+  (refs--print-time (refs--search 'when)))
 
 (provide 'refs)
 ;;; refs.el ends here
