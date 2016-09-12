@@ -318,6 +318,8 @@ render a friendly results buffer."
    (list (read (completing-read "Macro: " (refs--macros)))))
   (refs--search symbol))
 
+;; TODO: refs-variable, refs-any, refs-special
+
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
   `(let ((start-time (current-time))
