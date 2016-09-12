@@ -286,20 +286,24 @@ render a friendly results buffer."
   "Display all the references to SYMBOL, a function or macro."
   (let* ((loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
-         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
-         (matching-forms (--map-indexed
-                          (progn
-                            (when (zerop (mod it-index 10))
-                              (message "Searched %s/%s files" it-index total-paths))
-                            (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
-                          loaded-src-bufs))
-         (forms-and-bufs (-zip matching-forms loaded-src-bufs))
-         ;; Remove paths where we didn't find any matches.
-         (forms-and-bufs (--filter (car it) forms-and-bufs)))
-    (message "Searched %s/%s files" total-paths total-paths)
-    (refs--show-results symbol forms-and-bufs)
-    ;; Clean up temporary buffers.
-    (--each loaded-src-bufs (kill-buffer it))))
+         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths)))
+    ;; Use unwind-protect to ensure we always cleanup temporary
+    ;; buffers, even if the user hits C-g.
+    (unwind-protect
+        (let* ((matching-forms (--map-indexed
+                                (progn
+                                  (when (zerop (mod it-index 10))
+                                    (message "Searched %s/%s files" it-index total-paths))
+                                  (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
+                                loaded-src-bufs))
+               (forms-and-bufs (-zip matching-forms loaded-src-bufs))
+               ;; Remove paths where we didn't find any matches.
+               (forms-and-bufs (--filter (car it) forms-and-bufs)))
+
+          (message "Searched %s/%s files" total-paths total-paths)
+          (refs--show-results symbol forms-and-bufs))
+      ;; Clean up temporary buffers.
+      (--each loaded-src-bufs (kill-buffer it)))))
 
 (defun refs-function (symbol)
   "Display all the references to SYMBOL, a function."
