@@ -220,30 +220,27 @@ START-POS and END-POS (inclusive).
 
 For the characters that are between START-POS and END-POS,
 propertize them."
-  (let (section-start-pos section-end-pos section)
+  (let (expanded-start-pos expanded-end-pos section)
     (with-current-buffer buffer
       ;; Expand START-POS and END-POS to line boundaries.
       (goto-char start-pos)
       (beginning-of-line)
-      (setq section-start-pos (point))
+      (setq expanded-start-pos (point))
       (goto-char end-pos)
       (end-of-line)
-      (setq section-end-pos (point))
+      (setq expanded-end-pos (point))
 
-      ;; Extract the section we're interested in.
-      (setq section (buffer-substring section-start-pos section-end-pos)))
-    ;; Find the positions where we want to start the match
-    ;; highlighting.
-    (let* ((match-start (- start-pos section-start-pos))
-           (match-end (- end-pos section-start-pos))
-           (section-before-match (substring section 0 match-start))
-           (section-in-match (substring section match-start match-end))
-           (section-after-match (substring section match-end)))
-      (refs--unindent-rigidly
-       (concat
-        (propertize section-before-match 'face 'font-lock-comment-face)
-        (refs--syntax-highlight section-in-match)
-        (propertize section-after-match 'face 'font-lock-comment-face))))))
+      ;; Extract the rest of the line before and after the section we're interested in.
+      (let* ((before-match (buffer-substring expanded-start-pos start-pos))
+             (after-match (buffer-substring end-pos expanded-end-pos)))
+        ;; Concat the extra text with the actual match, ensuring we
+        ;; highlight the match as code but highlight the rest as as
+        ;; comments.
+        (refs--unindent-rigidly
+         (concat
+          (propertize before-match 'face 'font-lock-comment-face)
+          (refs--syntax-highlight (buffer-substring start-pos end-pos))
+          (propertize after-match 'face 'font-lock-comment-face)))))))
 
 (defun refs--find-file (button)
   "Open the file referenced by BUTTON."
