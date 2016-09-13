@@ -42,7 +42,9 @@ in the current buffer."
 
 (defun refs--sexp-positions (buffer start-pos end-pos)
   "Return a list of start and end positions of all the sexps
-between START-POS and END-POS (excluding ends) in BUFFER."
+between START-POS and END-POS (excluding ends) in BUFFER.
+
+Not recursive, so we don't consider subelements of nested sexps."
   (let ((positions nil)
         (current-pos (1+ start-pos)))
     (with-current-buffer buffer
