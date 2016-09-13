@@ -144,11 +144,11 @@ return those subforms, along with their positions."
         (refs--find-calls-1 buffer form start-pos end-pos symbol)))
     forms-with-positions)))
 
-(defun refs--functions ()
-  "Return a list of all symbols that are variables."
+(defun refs--filter-obarray (pred)
+  "Return a list of all the items in `obarray' where PRED returns t."
   (let (symbols)
     (mapatoms (lambda (symbol)
-                (when (functionp symbol)
+                (when (funcall pred symbol)
                   (push symbol symbols))))
     symbols))
 
@@ -313,7 +313,9 @@ render a friendly results buffer."
   "Display all the references to SYMBOL, a function."
   (interactive
    ;; TODO: default to function at point.
-   (list (read (completing-read "Function: " (refs--functions)))))
+   (list (read (completing-read
+                "Function: "
+                (refs--filter-obarray #'functionp)))))
   (refs--search symbol))
 
 (defun refs-macro (symbol)
