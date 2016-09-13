@@ -148,7 +148,8 @@ return those subforms, along with their positions."
   "Return a list of all the items in `obarray' where PRED returns t."
   (let (symbols)
     (mapatoms (lambda (symbol)
-                (when (funcall pred symbol)
+                (when (and (funcall pred symbol)
+                           (not (equal (symbol-name symbol) "")))
                   (push symbol symbols))))
     symbols))
 
@@ -349,9 +350,7 @@ render a friendly results buffer."
                  ;; this?
                  (lambda (sym)
                    (and (not (special-form-p sym))
-                        (not (functionp sym))
-                        ;; TODO: why is there an empty symbol in the obarray?
-                        (not (equal (symbol-name sym) "")))))))))
+                        (not (functionp sym)))))))))
   (refs--search symbol))
 
 (defun refs-symbol (symbol)
