@@ -321,7 +321,45 @@ render a friendly results buffer."
 (defun refs-macro (symbol)
   "Display all the references to SYMBOL, a macro."
   (interactive
-   (list (read (completing-read "Macro: " (refs--macros)))))
+   (list (read (completing-read
+                "Macro: "
+                (refs--filter-obarray #'macrop)))))
+  (refs--search symbol))
+
+;; TODO: currently we always search for function forms, which is
+;; wrong.
+
+(defun refs-special (symbol)
+  "Display all the references to SYMBOL, a macro."
+  (interactive
+   (list (read (completing-read
+                "Macro: "
+                (refs--filter-obarray #'special-form-p)))))
+  (refs--search symbol))
+
+;; TODO: these docstring are poor and don't say where we search.
+
+(defun refs-variable (symbol)
+  "Display all the references to SYMBOL, a variable."
+  (interactive
+   (list (read (completing-read
+                "Variable: "
+                (refs--filter-obarray
+                 ;; TODO: is there a built-in predicate function for
+                 ;; this?
+                 (lambda (sym)
+                   (and (not (special-form-p sym))
+                        (not (functionp sym))
+                        ;; TODO: why is there an empty symbol in the obarray?
+                        (not (equal (symbol-name sym) "")))))))))
+  (refs--search symbol))
+
+(defun refs-symbol (symbol)
+  "Display all the references to SYMBOL."
+  (interactive
+   (list (read (completing-read
+                "Symbol: "
+                (refs--filter-obarray (lambda (_) t))))))
   (refs--search symbol))
 
 ;; TODO: refs-variable, refs-any, refs-special
