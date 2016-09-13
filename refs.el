@@ -106,12 +106,20 @@ Returns nil otherwise.
 
 This is basic static analysis, so indirect function calls are
 ignored."
-  ;; TODO: Handle funcall to static symbols too.
+  ;; TODO: Handle apply to static symbols too.
   ;; TODO: Handle sharp-quoted function references.
   ;; TODO: (defun foo (bar baz)) is not a function call to bar.
   (cond
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
+    (list (list form start-pos end-pos)))
+   ;; Are we looking at (funcall 'symbol ...)?
+   ((and (consp form) (eq (car form) 'funcall)
+         (or
+          ;; (funcall 'symbol ...)
+          (equal `',symbol (cl-second form))
+          ;; (funcall #'symbol ...)
+          (equal `#',symbol (cl-second form))))
     (list (list form start-pos end-pos)))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))

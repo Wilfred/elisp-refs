@@ -29,6 +29,17 @@ whilst visiting that file."
      (should
       (equal (nth 2 sexp-positions) '(42 54))))))
 
+(ert-deftest refs--find-calls-funcall ()
+  "Ensure we handle comments correctly when calculating sexp positions."
+  (with-temp-backed-buffer
+   "(funcall #'foo)"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     ;; The position of the setq should take into account the comment.
+     (should
+      (equal calls (list (list '(funcall #'foo) 1 16)))))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and
