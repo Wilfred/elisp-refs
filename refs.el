@@ -113,8 +113,10 @@ ignored."
    ;; Base case: are we looking at (symbol ...)?
    ((and (consp form) (eq (car form) symbol))
     (list (list form start-pos end-pos)))
-   ;; Are we looking at (funcall 'symbol ...)?
-   ((and (consp form) (eq (car form) 'funcall)
+   ;; Are we looking at (funcall 'symbol ...) or
+   ;; (apply 'symbol ...)?
+   ((and (consp form)
+         (or (eq (car form) 'funcall) (eq (car form) 'apply))
          (or
           ;; (funcall 'symbol ...)
           (equal `',symbol (cl-second form))
