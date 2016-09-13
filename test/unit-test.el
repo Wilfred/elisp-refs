@@ -1,6 +1,34 @@
 (require 'ert)
 (require 'refs)
 
+(defmacro with-temp-backed-buffer (contents &rest body)
+  "Create a temporary file with CONTENTS, and evaluate BODY
+whilst visiting that file."
+  (let ((filename-sym (make-symbol "filename"))
+        (buf-sym (make-symbol "buf")))
+    `(let* ((,filename-sym (make-temp-file "with-temp-buffer-and-file"))
+            (,buf-sym (find-file-noselect ,filename-sym)))
+       (unwind-protect
+           (with-current-buffer ,buf-sym
+             (insert ,contents)
+             (save-buffer)
+             ,@body)
+         (kill-buffer ,buf-sym)
+         (delete-file ,filename-sym)))))
+
+(ert-deftest refs--sexp-positions ()
+  "Ensure we handle comments correctly when calculating sexp positions."
+  (with-temp-backed-buffer
+   "(while list
+  ;; take the head of LIST
+  (setq len 1))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (sexp-positions
+           (refs--sexp-positions refs-buf (point-min) (point-max))))
+     ;; The position of the setq should take into account the comment.
+     (should
+      (equal (nth 2 sexp-positions) '(42 54))))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and

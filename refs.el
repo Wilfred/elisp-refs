@@ -49,7 +49,8 @@ between START-POS and END-POS (excluding ends) in BUFFER."
       (condition-case _err
           ;; Loop until we can't read any more.
           (loop-while t
-            (let* ((sexp-end-pos (scan-sexps current-pos 1))
+            (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
+                                   (scan-sexps current-pos 1)))
                    (sexp-start-pos (refs--start-pos sexp-end-pos)))
               (if (< sexp-end-pos end-pos)
                   ;; This sexp is inside the range requested.
@@ -178,7 +179,11 @@ visiting the same file."
   (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
     (with-current-buffer fresh-buffer
       (setq-local refs--path path)
-      (shut-up (insert-file-contents path)))
+      (shut-up (insert-file-contents path))
+      ;; We don't enable emacs-lisp-mode because it slows down this
+      ;; function significantly. We just need the syntax table for
+      ;; scan-sexps to do the right thing with comments.
+      (set-syntax-table emacs-lisp-mode-syntax-table))
     fresh-buffer))
 
 (defun refs--syntax-highlight (str)
