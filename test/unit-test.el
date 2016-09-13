@@ -11,7 +11,7 @@ whilst visiting that file."
        (unwind-protect
            (with-current-buffer ,buf-sym
              (insert ,contents)
-             (save-buffer)
+             (shut-up (save-buffer))
              ,@body)
          (kill-buffer ,buf-sym)
          (delete-file ,filename-sym)))))
