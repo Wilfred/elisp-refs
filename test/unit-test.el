@@ -51,6 +51,15 @@ whilst visiting that file."
      (should
       (equal calls (list (list '(apply #'foo '(1 2)) 1 21)))))))
 
+(ert-deftest refs--find-calls-let-without-assignment ()
+  "We shouldn't confuse let declarations with function calls."
+  (with-temp-backed-buffer
+   "(let (foo)) (let* (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     (should (null calls)))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and

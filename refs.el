@@ -123,6 +123,26 @@ ignored."
           ;; (funcall #'symbol ...)
           (equal `#',symbol (cl-second form))))
     (list (list form start-pos end-pos)))
+   ;; Are we looking at (let (syms...)) or (let* (syms...))?
+   ;; TODO: there's code duplication here with the normal function
+   ;; call case.
+   ((and (consp form)
+         (or (eq (car form) 'let) (eq (car form) 'let*)))
+    (let ((sexp-positions (refs--sexp-positions buffer start-pos end-pos))
+          (found-calls nil))
+      ;; Iterate through the subforms, calculating matching paren
+      ;; positions so we know where we are in the source.
+      (dolist (subform-and-pos (-drop 2 (-zip form sexp-positions)))
+        (let ((subform (car subform-and-pos))
+              (subform-start-end (cdr subform-and-pos)))
+          (when (consp subform)
+            (-let [(subform-start subform-end) subform-start-end]
+              (push
+               (refs--find-calls-1 buffer subform
+                                   subform-start subform-end symbol)
+               found-calls)))))
+      ;; Concat any results from the subforms.
+      (-non-nil (apply #'append (nreverse found-calls)))))
    ;; Recurse, so we can find (... (symbol ...) ...)
    ((and (consp form) (not (list-utils-improper-p form)))
     (let ((sexp-positions (refs--sexp-positions buffer start-pos end-pos))
