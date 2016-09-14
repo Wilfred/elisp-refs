@@ -84,6 +84,6 @@ whilst visiting that file."
   "Smoke test for `refs-function'."
   (refs-function 'format))
 
-(ert-deftest refs-function ()
+(ert-deftest refs-macro ()
   "Smoke test for `refs-macro'."
   (refs-macro 'when))
