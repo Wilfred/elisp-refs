@@ -417,16 +417,10 @@ render a friendly results buffer."
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
-  `(let ((start-time (current-time))
-         end-time)
+  `(let ((start-time (float-time)))
      ,@body
-     (setq end-time (current-time))
-     (let ((start-time-secs (+ (cl-second start-time)
-                               (/ (float (cl-third start-time)) 1000000)))
-           (end-time-secs (+ (cl-second end-time)
-                             (/ (float (cl-third end-time)) 1000000))))
-       (message "Took %s seconds"
-                (- end-time-secs start-time-secs)))))
+     (message "Took %s seconds"
+              (- (float-time) start-time))))
 
 (defun refs--bench ()
   "Measure runtime of searching."
