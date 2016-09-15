@@ -112,7 +112,7 @@ whilst visiting that file."
   "We should find function calls in let assignments."
   ;; TODO: actually check positions, this is error-prone.
   (with-temp-backed-buffer
-   "(let ((bar (foo)) (let* ((bar (foo)))"
+   "(let ((bar (foo)))) (let* ((bar (foo))))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (forms (refs--read-all-buffer-forms refs-buf))
           (calls (refs--find-calls forms refs-buf 'foo)))

@@ -148,13 +148,13 @@ START-POS and END-POS should be the position of FORM within BUFFER."
   (lambda (form path)
     (cond
      ;; Ignore (defun _ (SYMBOL ...) ...)
-     ((eq (car path) '(defun . 2))
+     ((equal (car path) '(defun . 2))
       nil)
      ;; Ignore (let (SYMBOL ...) ...)
      ;; and (let* (SYMBOL ...) ...)
      ((or
-       (eq (car path) '(let . 1))
-       (eq (car path) '(let* . 1)))
+       (equal (car path) '(let . 1))
+       (equal (car path) '(let* . 1)))
       nil)
      ;; (SYMBOL ...)
      ((eq (car form) symbol)
