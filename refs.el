@@ -349,7 +349,7 @@ render a friendly results buffer."
                                   (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
                                 loaded-src-bufs))
                (forms-and-bufs (-zip matching-forms loaded-src-bufs))
-               ;; Remove paths where we didn't find any matches.
+               ;; Remove buffers where we didn't find any matches.
                (forms-and-bufs (--filter (car it) forms-and-bufs)))
 
           (message "Searched %s/%s files" total-paths total-paths)
