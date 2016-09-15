@@ -49,6 +49,17 @@ whilst visiting that file."
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
+(ert-deftest refs--find-calls-nested ()
+  "Find nested function calls."
+  (with-temp-backed-buffer
+   "(baz (bar (foo)))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     ;; The position of the setq should take into account the comment.
+     (should
+      (equal calls (list (list '(foo) 11 16)))))))
+
 (ert-deftest refs--find-calls-funcall ()
   "Find calls that use funcall."
   (with-temp-backed-buffer

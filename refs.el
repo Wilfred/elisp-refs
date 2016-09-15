@@ -127,7 +127,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
         (-let [(subform . pos) it]
           ;; TODO: should we allow atoms?
           ;; TODO: add tests for improper lists
-          (when (and (consp subform) (list-utils-improper-p form))
+          (when (and (consp subform) (not (list-utils-improper-p form)))
             (-let* (((subform-start subform-end) pos)
                     (subform-matches
                      (refs--walk
