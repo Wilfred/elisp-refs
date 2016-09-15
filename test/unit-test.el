@@ -4,7 +4,7 @@
 ;; For some reason, travis CI is setting this value too low, meaning
 ;; we can't recurse on deep sexp structures.
 (message "old max-specpdl-size: %s" max-specpdl-size)
-(setq max-specpdl-size 1000)
+(setq max-specpdl-size 2000)
 
 (defmacro with-temp-backed-buffer (contents &rest body)
   "Create a temporary file with CONTENTS, and evaluate BODY
