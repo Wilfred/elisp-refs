@@ -165,9 +165,12 @@ START-POS and END-POS should be the position of FORM within BUFFER."
            (equal `',symbol (cl-second form)))
       t))))
 
-(defun refs--find-calls (forms-with-positions buffer symbol)
-  "If FORMS-WITH-POSITIONS contain any calls to SYMBOL,
-return those subforms, along with their positions."
+(defun refs--find-calls (buffer symbol)
+  "Read all the forms in BUFFER, and return a list of all calls to SYMBOL,
+along with their positions.
+
+If FORMS-WITH-POSITIONS contain any calls to SYMBOL, return those
+subforms, along with their positions."
   (-non-nil
    (--mapcat
     (-let [(form start-pos end-pos symbol-positions) it]
@@ -176,7 +179,7 @@ return those subforms, along with their positions."
       (when (assoc symbol symbol-positions)
         (refs--walk buffer form start-pos end-pos
                     (refs--call-match-p symbol))))
-    forms-with-positions)))
+    (refs--read-all-buffer-forms buffer))))
 
 (defun refs--filter-obarray (pred)
   "Return a list of all the items in `obarray' where PRED returns t."
@@ -346,7 +349,7 @@ render a friendly results buffer."
                                 (progn
                                   (when (zerop (mod it-index 10))
                                     (message "Searched %s/%s files" it-index total-paths))
-                                  (refs--find-calls (refs--read-all-buffer-forms it) it symbol))
+                                  (refs--find-calls it symbol))
                                 loaded-src-bufs))
                (forms-and-bufs (-zip matching-forms loaded-src-bufs))
                ;; Remove buffers where we didn't find any matches.
