@@ -409,7 +409,16 @@ render a friendly results buffer."
   (message "Searching for 'mod")
   (refs--print-time (refs--search 'mod))
   (message "Searching for 'when")
-  (refs--print-time (refs--search 'when)))
+  (refs--print-time (refs--search 'when))
+  (message "Formatting 10,000 results")
+  (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
+        (buf (generate-new-buffer " *dummy-refs-buf*")))
+    (with-current-buffer buf
+      (insert "(defun foo (bar) (if bar nil (with-current-buffer bar))) ;; blah")
+      (setq-local refs--path "/tmp/foo.el"))
+    (refs--print-time
+     (refs--show-results 'foo (list (cons forms buf))))
+    (kill-buffer buf)))
 
 (defun refs--report-loc ()
   "Report the total number of lines of code searched."
