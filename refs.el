@@ -111,6 +111,8 @@ ignored."
   ;; TODO: (defun foo (bar baz)) is not a function call to bar.
   (let ((recurse-subforms
          (lambda (&optional offset)
+           "Convenience function for recursing on subforms.
+If OFFSET is provided, ignore the OFFSET subforms."
            (unless offset
              (setq offset 0))
            (let ((sexp-positions (refs--sexp-positions buffer start-pos end-pos))
