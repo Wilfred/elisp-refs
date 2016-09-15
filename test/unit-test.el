@@ -52,24 +52,23 @@ whilst visiting that file."
 (ert-deftest refs--find-calls-funcall ()
   "Find calls that use funcall."
   (with-temp-backed-buffer
-   "(funcall #'foo)"
+   "(funcall 'foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (forms (refs--read-all-buffer-forms refs-buf))
           (calls (refs--find-calls forms refs-buf 'foo)))
      ;; The position of the setq should take into account the comment.
      (should
-      (equal calls (list (list '(funcall #'foo) 1 16)))))))
+      (equal calls (list (list '(funcall 'foo) 1 15)))))))
 
 (ert-deftest refs--find-calls-apply ()
   "Find calls that use apply."
   (with-temp-backed-buffer
-   "(apply #'foo '(1 2))"
+   "(apply 'foo '(1 2))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (forms (refs--read-all-buffer-forms refs-buf))
           (calls (refs--find-calls forms refs-buf 'foo)))
-     ;; The position of the setq should take into account the comment.
      (should
-      (equal calls (list (list '(apply #'foo '(1 2)) 1 21)))))))
+      (equal calls (list (list '(apply 'foo '(1 2)) 1 20)))))))
 
 (ert-deftest refs--find-calls-let-without-assignment ()
   "We shouldn't confuse let declarations with function calls."
