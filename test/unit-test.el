@@ -38,6 +38,17 @@ whilst visiting that file."
      (should
       (equal (nth 2 sexp-positions) '(42 54))))))
 
+(ert-deftest refs--find-calls-basic ()
+  "Find simple function calls."
+  (with-temp-backed-buffer
+   "(foo)"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     ;; The position of the setq should take into account the comment.
+     (should
+      (equal calls (list (list '(foo) 1 6)))))))
+
 (ert-deftest refs--find-calls-funcall ()
   "Find calls that use funcall."
   (with-temp-backed-buffer
