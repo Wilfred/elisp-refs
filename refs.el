@@ -139,10 +139,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches)))))
 
-;; TODO: Handle apply to static symbols too.
 ;; TODO: Handle sharp-quoted function references.
-;; TODO: (defun foo (bar baz)) is not a function call to bar.
-;; TODO: let, let*
 (defun refs--call-match-p (symbol)
   "Return a matcher function that looks for SYMBOL in a form."
   (lambda (form path)
