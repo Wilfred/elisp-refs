@@ -70,6 +70,15 @@ whilst visiting that file."
      (should
       (equal calls (list (list '(apply 'foo '(1 2)) 1 20)))))))
 
+(ert-deftest refs--find-calls-function-params ()
+  "Function parameters should not be considered function calls."
+  (with-temp-backed-buffer
+   "(defun bar (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     (should (null calls)))))
+
 (ert-deftest refs--find-calls-let-without-assignment ()
   "We shouldn't confuse let declarations with function calls."
   (with-temp-backed-buffer

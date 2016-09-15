@@ -150,15 +150,22 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 (defun refs--call-match-p (symbol)
   "Return a matcher function that looks for SYMBOL in a form."
   (lambda (form path index)
-    (or
+    (cond
+     ;; Ignore (defun _ (SYMBOL ...) ...)
+     ((and (eq (car path) 'defun)
+           (eq index 2))
+      nil)
      ;; (SYMBOL ...)
-     (eq (car form) symbol)
+     ((eq (car form) symbol)
+      t)
      ;; (funcall 'SYMBOL ...)
-     (and (eq (car form) 'funcall)
-          (equal `',symbol (cl-second form)))
+     ((and (eq (car form) 'funcall)
+           (equal `',symbol (cl-second form)))
+      t)
      ;; (apply 'SYMBOL ...)
-     (and (eq (car form) 'apply)
-          (equal `',symbol (cl-second form))))))
+     ((and (eq (car form) 'apply)
+           (equal `',symbol (cl-second form)))
+      t))))
 
 (defun refs--find-calls (forms-with-positions buffer symbol)
   "If FORMS-WITH-POSITIONS contain any calls to SYMBOL,
