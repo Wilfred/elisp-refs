@@ -216,11 +216,24 @@ visiting the same file."
       (set-syntax-table emacs-lisp-mode-syntax-table))
     fresh-buffer))
 
+(defvar refs--highlighting-buffer
+  nil
+  "A temporary buffer used for highlighting.
+Since `refs--syntax-highlight' is a hot function, we
+don't want to create lots of temporary buffers.")
+
 (defun refs--syntax-highlight (str)
   "Apply font-lock properties to a string STR of Emacs lisp code."
-  (with-temp-buffer
+  ;; Ensure we have a highlighting buffer to work with.
+  (unless refs--highlighting-buffer
+    (setq refs--highlighting-buffer
+          (generate-new-buffer " *refs-highlighting*"))
+    (with-current-buffer refs--highlighting-buffer
+      (delay-mode-hooks (emacs-lisp-mode))))
+  
+  (with-current-buffer refs--highlighting-buffer
+    (erase-buffer)
     (insert str)
-    (delay-mode-hooks (emacs-lisp-mode))
     (if (fboundp 'font-lock-ensure)
         (font-lock-ensure)
       (with-no-warnings
