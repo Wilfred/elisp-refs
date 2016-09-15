@@ -98,7 +98,7 @@ Internal implementation detail.")
            (error "Unexpected error whilst reading %s position %s: %s"
                   (f-abbrev refs--path) (point) err)))))))
 
-(defun refs--walk (buffer form start-pos end-pos match-p &optional index path)
+(defun refs--walk (buffer form start-pos end-pos match-p &optional path)
   "Walk FORM, a nested list, and return a list of subforms (with
 their positions) where MATCH-P returns t.
 
@@ -106,16 +106,14 @@ MATCH-P is called with two arguments:
 \(CURRENT-FORM PATH INDEX).
 
 PATH is the first element of all the enclosing forms of
-CURRENT-FORM, innermost first.
+CURRENT-FORM, innermost first, along with the index of the
+current form.
 
-INDEX is the zero-indexed position of CURRENT-FORM within the
-enclosing form.
-
-For example if we are looking at h in (e f (g h)), PATH is (g e)
-and INDEX is 1.
+For example if we are looking at h in (e f (g h)), PATH takes the
+value ((g . 1) (e . 2)).
 
 START-POS and END-POS should be the position of FORM within BUFFER."
-  (if (funcall match-p form path index)
+  (if (funcall match-p form path)
       ;; If this form matches, just return it, along with the position.
       (list (list form start-pos end-pos))
     ;; Otherwise, see if we should recurse.
@@ -134,8 +132,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
                       buffer subform
                       subform-start subform-end
                       match-p
-                      it-index
-                      (cons (car form) path))))
+                      (cons (cons (car form) it-index) path))))
               (when subform-matches
                 (push subform-matches matches))))))
 
@@ -148,15 +145,16 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 ;; TODO: let, let*
 (defun refs--call-match-p (symbol)
   "Return a matcher function that looks for SYMBOL in a form."
-  (lambda (form path index)
+  (lambda (form path)
     (cond
      ;; Ignore (defun _ (SYMBOL ...) ...)
-     ((and (eq (car path) 'defun)
-           (eq index 2))
+     ((eq (car path) '(defun . 2))
       nil)
      ;; Ignore (let (SYMBOL ...) ...)
      ;; and (let* (SYMBOL ...) ...)
-     ((and (memq (car path) '(let let*)))
+     ((or
+       (eq (car path) '(let . 1))
+       (eq (car path) '(let* . 1)))
       nil)
      ;; (SYMBOL ...)
      ((eq (car form) symbol)
