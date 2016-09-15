@@ -146,7 +146,6 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 ;; TODO: Handle sharp-quoted function references.
 ;; TODO: (defun foo (bar baz)) is not a function call to bar.
 ;; TODO: let, let*
-;; TODO: don't depend on lexical binding, it's slower (just use a global)
 (defun refs--call-match-p (symbol)
   "Return a matcher function that looks for SYMBOL in a form."
   (lambda (form path index)
