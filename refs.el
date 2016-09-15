@@ -123,7 +123,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
           ;; Find the positions of the subforms.
           (subforms-positions (refs--sexp-positions buffer start-pos end-pos)))
       ;; For each subform, get its position, and recurse.
-      (--each-indexed (-zip form subforms-positions)
+      (--each (-zip form subforms-positions)
         (-let [(subform . pos) it]
           ;; TODO: should we allow atoms?
           ;; TODO: add tests for improper lists
