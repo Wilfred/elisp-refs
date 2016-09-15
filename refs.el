@@ -115,11 +115,11 @@ ignored."
 If OFFSET is provided, ignore the OFFSET subforms."
            (unless offset
              (setq offset 0))
-           (let ((sexp-positions (refs--sexp-positions buffer start-pos end-pos))
+           (let ((subforms-positions (refs--sexp-positions buffer start-pos end-pos))
                  (found-calls nil))
              ;; Iterate through the subforms, calculating matching paren
              ;; positions so we know where we are in the source.
-             (dolist (subform-and-pos (-drop offset (-zip form sexp-positions)))
+             (dolist (subform-and-pos (-drop offset (-zip form subforms-positions)))
                (-let [(subform . pos) subform-and-pos]
                  (when (consp subform)
                    (-let [(subform-start subform-end) pos]
