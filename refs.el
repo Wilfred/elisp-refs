@@ -145,8 +145,6 @@ ignored."
       (list (list form start-pos end-pos)))
      
      ;; Are we looking at (let (syms...)) or (let* (syms...))?
-     ;; TODO: there's code duplication here with the normal function
-     ;; call case.
      ((and (consp form)
            (or (eq (car form) 'let) (eq (car form) 'let*)))
       (funcall recurse-subforms 2))
