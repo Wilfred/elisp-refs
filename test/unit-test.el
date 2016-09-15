@@ -3,11 +3,12 @@
 
 ;; For some reason, travis CI is recursing more deeply, meaning we hit
 ;; recursion limits that I can't reproduce locally
-(message "max-specpdl-size: %s max-lisp-eval-depth: %s "
-         max-specpdl-size
-         max-lisp-eval-depth)
-(setq max-specpdl-size 2500)
-(setq max-lisp-eval-depth 1000)
+(when (getenv "TRAVIS")
+  (message "max-specpdl-size: %s max-lisp-eval-depth: %s "
+           max-specpdl-size
+           max-lisp-eval-depth)
+  (setq max-specpdl-size 2500)
+  (setq max-lisp-eval-depth 1000))
 
 (defmacro with-temp-backed-buffer (contents &rest body)
   "Create a temporary file with CONTENTS, and evaluate BODY
