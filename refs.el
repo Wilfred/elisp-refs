@@ -98,68 +98,66 @@ Internal implementation detail.")
            (error "Unexpected error whilst reading %s position %s: %s"
                   (f-abbrev refs--path) (point) err)))))))
 
-(defun refs--find-calls-1 (buffer form start-pos end-pos symbol)
-  "If FORM contains any calls to SYMBOL, return those subforms, along
-with their start and end positions.
+(defun refs--walk (buffer form start-pos end-pos match-p &optional index path)
+  "Walk FORM, a nested list, and return a list of subforms (with
+their positions) where MATCH-P returns t.
 
-Returns nil otherwise.
+MATCH-P is called with two arguments:
+\(CURRENT-FORM PATH INDEX).
 
-This is basic static analysis, so indirect function calls are
-ignored."
-  ;; TODO: Handle apply to static symbols too.
-  ;; TODO: Handle sharp-quoted function references.
-  ;; TODO: (defun foo (bar baz)) is not a function call to bar.
-  (let ((recurse-subforms
-         (lambda (&optional offset)
-           "Convenience function for recursing on subforms.
-If OFFSET is provided, ignore the OFFSET subforms."
-           (unless offset
-             (setq offset 0))
-           (let ((subforms-positions (refs--sexp-positions buffer start-pos end-pos))
-                 (found-calls nil))
-             ;; Iterate through the subforms, calculating matching paren
-             ;; positions so we know where we are in the source.
-             (dolist (subform-and-pos (-drop offset (-zip form subforms-positions)))
-               (-let [(subform . pos) subform-and-pos]
-                 (when (consp subform)
-                   (-let [(subform-start subform-end) pos]
-                     (push
-                      (refs--find-calls-1 buffer subform
-                                          subform-start subform-end symbol)
-                      found-calls)))))
-             ;; Concat any results from the subforms.
-             (-non-nil (apply #'append (nreverse found-calls)))))))
-    (cond
-     ;; Base case: if we're looking at a form (symbol ...),
-     ;; we've found a function call!
-     ((and (consp form) (eq (car form) symbol))
-      (list (list form start-pos end-pos)))
-     
-     ;; If we're looking at a form (funcall 'symbol ...) or
-     ;; (apply 'symbol ...) we've also found a function call.
-     ((and (consp form)
-           (or (eq (car form) 'funcall) (eq (car form) 'apply))
-           (or
-            ;; (funcall 'symbol ...)
-            (equal `',symbol (cl-second form))
-            ;; (funcall #'symbol ...)
-            (equal `#',symbol (cl-second form))))
-      (list (list form start-pos end-pos)))
-     
-     ;; Are we looking at (let (syms...)) or (let* (syms...))?
-     ((and (consp form)
-           (or (eq (car form) 'let) (eq (car form) 'let*)))
-      (funcall recurse-subforms 2))
-     
-     ;; Otherwise, if we've found a nested form, we recurse to
-     ;; try to find subforms with function calls:
-     ;; (... (symbol ...) ...)
-     ((and (consp form) (not (list-utils-improper-p form)))
-      (funcall recurse-subforms))
-     
-     ;; If it's not a cons cell, it's definitely not a call.
-     (t
-      nil))))
+PATH is the first element of all the enclosing forms of
+CURRENT-FORM, innermost first.
+
+INDEX is the zero-indexed position of CURRENT-FORM within the
+enclosing form.
+
+For example if we are looking at h in (e f (g h)), PATH is (g e)
+and INDEX is 1.
+
+START-POS and END-POS should be the position of FORM within BUFFER."
+  (if (funcall match-p form path index)
+      ;; If this form matches, just return it, along with the position.
+      (list (list form start-pos end-pos))
+    ;; Otherwise, see if we should recurse.
+    (let ((matches nil)
+          ;; Find the positions of the subforms.
+          (subforms-positions (refs--sexp-positions buffer start-pos end-pos)))
+      ;; For each subform, get its position, and recurse.
+      (--each-indexed (-zip form subforms-positions)
+        (-let [(subform . pos) it]
+          ;; TODO: should we allow atoms?
+          (when (consp subform)
+            (-let* (((subform-start subform-end) pos)
+                    (subform-matches
+                     (refs--walk
+                      buffer subform
+                      subform-start subform-end
+                      match-p
+                      it-index
+                      (cons (car form) path))))
+              (when subform-matches
+                (push subform-matches matches))))))
+
+      ;; Concat the results from all the subforms.
+      (apply #'append (nreverse matches)))))
+
+;; TODO: Handle apply to static symbols too.
+;; TODO: Handle sharp-quoted function references.
+;; TODO: (defun foo (bar baz)) is not a function call to bar.
+;; TODO: let, let*
+;; TODO: don't depend on lexical binding, it's slower (just use a global)
+(defun refs--call-match-p (symbol)
+  "Return a matcher function that looks for SYMBOL in a form."
+  (lambda (form path index)
+    (or
+     ;; (SYMBOL ...)
+     (eq (car form) symbol)
+     ;; (funcall 'SYMBOL ...)
+     (and (eq (car form) 'funcall)
+          (equal `',symbol (cl-second form)))
+     ;; (apply 'SYMBOL ...)
+     (and (eq (car form) 'apply)
+          (equal `',symbol (cl-second form))))))
 
 (defun refs--find-calls (forms-with-positions buffer symbol)
   "If FORMS-WITH-POSITIONS contain any calls to SYMBOL,
@@ -167,8 +165,11 @@ return those subforms, along with their positions."
   (-non-nil
    (--mapcat
     (-let [(form start-pos end-pos symbol-positions) it]
+      ;; Optimisation: don't bother walking a form if contains no
+      ;; references to the form we're looking for.
       (when (assoc symbol symbol-positions)
-        (refs--find-calls-1 buffer form start-pos end-pos symbol)))
+        (refs--walk buffer form start-pos end-pos
+                    (refs--call-match-p symbol))))
     forms-with-positions)))
 
 (defun refs--filter-obarray (pred)
