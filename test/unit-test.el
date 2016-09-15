@@ -43,8 +43,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(foo) 1 6)))))))
@@ -54,8 +53,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(baz (bar (foo)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(foo) 11 16)))))))
@@ -65,8 +63,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(funcall 'foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(funcall 'foo) 1 15)))))))
@@ -76,8 +73,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(apply 'foo '(1 2))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should
       (equal calls (list (list '(apply 'foo '(1 2)) 1 20)))))))
 
@@ -86,8 +82,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(defun bar (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-without-assignment ()
@@ -95,8 +90,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(let (foo)) (let* (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-with-assignment ()
@@ -104,8 +98,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(let ((foo nil)) (let* ((foo nil)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-with-assignment-call ()
@@ -114,8 +107,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(let ((bar (foo)))) (let* ((bar (foo))))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should
       (equal (length calls) 2)))))
 
@@ -124,8 +116,7 @@ whilst visiting that file."
   (with-temp-backed-buffer
    "(let (bar) (foo)) (let* (bar) (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
-          (forms (refs--read-all-buffer-forms refs-buf))
-          (calls (refs--find-calls forms refs-buf 'foo)))
+          (calls (refs--find-calls refs-buf 'foo)))
      (should (equal (length calls) 2)))))
 
 (ert-deftest refs--unindent-rigidly ()
