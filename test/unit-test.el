@@ -6,7 +6,7 @@
 (message "max-specpdl-size: %s max-lisp-eval-depth: %s "
          max-specpdl-size
          max-lisp-eval-depth)
-(setq max-specpdl-size 2000)
+(setq max-specpdl-size 2500)
 (setq max-lisp-eval-depth 1000)
 
 (defmacro with-temp-backed-buffer (contents &rest body)
