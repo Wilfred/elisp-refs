@@ -108,7 +108,7 @@ whilst visiting that file."
           (calls (refs--find-calls forms refs-buf 'foo)))
      (should (null calls)))))
 
-(ert-deftest refs--find-calls-let-with-assignment ()
+(ert-deftest refs--find-calls-let-with-assignment-call ()
   "We should find function calls in let assignments."
   ;; TODO: actually check positions, this is error-prone.
   (with-temp-backed-buffer
@@ -118,6 +118,15 @@ whilst visiting that file."
           (calls (refs--find-calls forms refs-buf 'foo)))
      (should
       (equal (length calls) 2)))))
+
+(ert-deftest refs--find-calls-let-body ()
+  "We should find function calls in let body."
+  (with-temp-backed-buffer
+   "(let (bar) (foo)) (let* (bar) (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (forms (refs--read-all-buffer-forms refs-buf))
+          (calls (refs--find-calls forms refs-buf 'foo)))
+     (should (equal (length calls) 2)))))
 
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
