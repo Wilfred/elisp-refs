@@ -424,9 +424,11 @@ render a friendly results buffer."
   "Measure runtime of searching."
   (interactive)
   (message "Searching for 'mod")
-  (refs--print-time (refs--search 'mod))
+  (refs--print-time (refs-function 'mod))
   (message "Searching for 'when")
-  (refs--print-time (refs--search 'when))
+  ;; TODO: this is ugly: we're using when for a common symbol to
+  ;; stress test, but it's not actually a function.
+  (refs--print-time (refs-function 'when))
   (message "Formatting 10,000 results")
   (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
         (buf (generate-new-buffer " *dummy-refs-buf*")))
