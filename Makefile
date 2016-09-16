@@ -10,3 +10,6 @@ unit:
 
 install:
 	${CASK} install
+
+bench:
+	./bench.sh
