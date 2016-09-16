@@ -364,6 +364,7 @@ Display the results in a hyperlinked buffer.."
     ;; Use unwind-protect to ensure we always cleanup temporary
     ;; buffers, even if the user hits C-g.
     (unwind-protect
+        ;; TODO: use `dolist' here.
         (let* ((matching-forms (--map-indexed
                                 (progn
                                   (when (zerop (mod it-index 10))
