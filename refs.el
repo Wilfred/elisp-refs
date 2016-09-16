@@ -140,8 +140,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       (apply #'append (nreverse matches)))))
 
 ;; TODO: Handle sharp-quoted function references.
-(defun refs--call-match-p (symbol)
-  "Return a matcher function that looks for SYMBOL in a form."
+(defun refs--function-match-p (symbol)
+  "Return a matcher function that looks for function calls to
+SYMBOL in a form."
   (lambda (form path)
     (cond
      ;; Ignore (defun _ (SYMBOL ...) ...)
@@ -165,20 +166,37 @@ START-POS and END-POS should be the position of FORM within BUFFER."
            (equal `',symbol (cl-second form)))
       t))))
 
-(defun refs--find-calls (buffer symbol)
-  "Read all the forms in BUFFER, and return a list of all calls to SYMBOL,
-along with their positions.
+(defun refs--macro-match-p (symbol)
+  "Return a matcher function that looks for macro calls to SYMBOL
+in a form."
+  (lambda (form path)
+    (cond
+     ;; ;; Ignore (defun _ (SYMBOL ...) ...)
+     ;; ((equal (car path) '(defun . 2))
+     ;;  nil)
+     ;; ;; Ignore (let (SYMBOL ...) ...)
+     ;; ;; and (let* (SYMBOL ...) ...)
+     ;; ((or
+     ;;   (equal (car path) '(let . 1))
+     ;;   (equal (car path) '(let* . 1)))
+     ;;  nil)
+     ;; (SYMBOL ...)
+     ((eq (car form) symbol)
+      t))))
 
-If FORMS-WITH-POSITIONS contain any calls to SYMBOL, return those
-subforms, along with their positions."
+(defun refs--read-and-find (buffer symbol match-p)
+  "Read all the forms in BUFFER, and return a list of all forms that
+contain SYMBOL where MATCH-P returns t.
+
+For every matching form found, we return the form itself along
+with its start and end position."
   (-non-nil
    (--mapcat
     (-let [(form start-pos end-pos symbol-positions) it]
       ;; Optimisation: don't bother walking a form if contains no
       ;; references to the form we're looking for.
       (when (assoc symbol symbol-positions)
-        (refs--walk buffer form start-pos end-pos
-                    (refs--call-match-p symbol))))
+        (refs--walk buffer form start-pos end-pos match-p)))
     (refs--read-all-buffer-forms buffer))))
 
 (defun refs--filter-obarray (pred)
@@ -337,8 +355,9 @@ render a friendly results buffer."
     (special-mode)
     (setq buffer-read-only t)))
 
-(defun refs--search (symbol)
-  "Display all the references to SYMBOL, a function or macro."
+(defun refs--search (symbol match-p)
+  "Search for references to SYMBOL in all loaded files, filtering forms with MATCH-P.
+Display the results in a hyperlinked buffer.."
   (let* ((loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
          (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths)))
@@ -349,7 +368,7 @@ render a friendly results buffer."
                                 (progn
                                   (when (zerop (mod it-index 10))
                                     (message "Searched %s/%s files" it-index total-paths))
-                                  (refs--find-calls it symbol))
+                                  (refs--read-and-find it symbol match-p))
                                 loaded-src-bufs))
                (forms-and-bufs (-zip matching-forms loaded-src-bufs))
                ;; Remove buffers where we didn't find any matches.
@@ -367,7 +386,7 @@ render a friendly results buffer."
    (list (read (completing-read
                 "Function: "
                 (refs--filter-obarray #'functionp)))))
-  (refs--search symbol))
+  (refs--search symbol (refs--function-match-p symbol)))
 
 (defun refs-macro (symbol)
   "Display all the references to SYMBOL, a macro."
@@ -375,7 +394,8 @@ render a friendly results buffer."
    (list (read (completing-read
                 "Macro: "
                 (refs--filter-obarray #'macrop)))))
-  (refs--search symbol))
+  ;; TODO: can we avoid passing SYMBOL in multiple places?
+  (refs--search symbol (refs--macro-match-p symbol)))
 
 ;; TODO: currently we always search for function forms, which is
 ;; wrong.
