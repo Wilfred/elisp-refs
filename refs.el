@@ -364,17 +364,20 @@ Display the results in a hyperlinked buffer.."
     ;; Use unwind-protect to ensure we always cleanup temporary
     ;; buffers, even if the user hits C-g.
     (unwind-protect
-        ;; TODO: use `dolist' here.
-        (let* ((matching-forms (--map-indexed
-                                (progn
-                                  (when (zerop (mod it-index 10))
-                                    (message "Searched %s/%s files" it-index total-paths))
-                                  (refs--read-and-find it symbol match-p))
-                                loaded-src-bufs))
-               (forms-and-bufs (-zip matching-forms loaded-src-bufs))
-               ;; Remove buffers where we didn't find any matches.
-               (forms-and-bufs (--filter (car it) forms-and-bufs)))
-
+        (let ((searched 0)
+              (forms-and-bufs nil))
+          (dolist (buf loaded-src-bufs)
+            (let* ((matching-forms (refs--read-and-find buf symbol match-p)))
+              ;; If there were any matches in this buffer, push the
+              ;; matches along with the buffer into our results
+              ;; list.
+              (when matching-forms
+                (push (cons matching-forms buf) forms-and-bufs))
+              ;; Give feedback to the user on our progress, because
+              ;; searching takes several seconds.
+              (when (zerop (mod searched 10))
+                (message "Searched %s/%s files" searched total-paths))
+              (cl-incf searched)))
           (message "Searched %s/%s files" total-paths total-paths)
           (refs--show-results symbol forms-and-bufs))
       ;; Clean up temporary buffers.
