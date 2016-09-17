@@ -128,11 +128,11 @@ START-POS and END-POS should be the position of FORM within BUFFER."
   (if (funcall match-p form path)
       ;; If this form matches, just return it, along with the position.
       (list (list form start-pos end-pos))
-    ;; Otherwise, see if we should recurse.
+    ;; Otherwise, recurse on the subforms.
     (let ((matches nil)
           ;; Find the positions of the subforms.
           (subforms-positions (refs--sexp-positions buffer start-pos end-pos)))
-      ;; For each subform, get its position, and recurse.
+      ;; For each subform, if it's a list, recurse.
       (--each (-zip form subforms-positions)
         (-let [(subform . pos) it]
           ;; TODO: add tests for improper lists
