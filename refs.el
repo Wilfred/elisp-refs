@@ -252,7 +252,7 @@ with its start and end position."
 (defun refs--loaded-files ()
   "Return a list of all files that have been loaded in Emacs.
 Where the file was a .elc, return the path to the .el file instead."
-  (let ((elc-paths (-map #'-first-item load-history)))
+  (let ((elc-paths (mapcar #'-first-item load-history)))
     (-non-nil
      (--map
       (let ((el-name (format "%s.el" (f-no-ext it)))
@@ -394,7 +394,7 @@ render a friendly results buffer."
 Display the results in a hyperlinked buffer.."
   (let* ((loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
-         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths)))
+         (loaded-src-bufs (mapcar #'refs--contents-buffer loaded-paths)))
     ;; Use unwind-protect to ensure we always cleanup temporary
     ;; buffers, even if the user hits C-g.
     (unwind-protect
