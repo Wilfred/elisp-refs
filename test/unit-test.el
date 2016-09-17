@@ -53,7 +53,6 @@ whilst visiting that file."
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       (refs--function-match-p 'foo))))
-     ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
@@ -64,7 +63,6 @@ whilst visiting that file."
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       (refs--function-match-p 'foo))))
-     ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(foo) 11 16)))))))
 
@@ -75,7 +73,6 @@ whilst visiting that file."
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       (refs--function-match-p 'foo))))
-     ;; The position of the setq should take into account the comment.
      (should
       (equal calls (list (list '(funcall 'foo) 1 15)))))))
 
