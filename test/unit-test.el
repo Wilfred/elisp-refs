@@ -157,7 +157,7 @@ whilst visiting that file."
   "Smoke test for `refs-function'."
   (refs-function 'format)
   (should
-   (equal (buffer-name) "*refs: mod*")))
+   (equal (buffer-name) "*refs: format*")))
 
 (ert-deftest refs-macro ()
   "Smoke test for `refs-macro'."
