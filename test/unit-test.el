@@ -220,3 +220,9 @@ whilst visiting that file."
   (refs-macro 'when)
   (should
    (equal (buffer-name) "*refs: when*")))
+
+(ert-deftest refs-symbol ()
+  "Smoke test for `refs-symbol'."
+  (refs-symbol 'format-message)
+  (should
+   (equal (buffer-name) "*refs: format-message*")))

@@ -210,6 +210,13 @@ in a form."
      ((eq (car form) symbol)
       t))))
 
+(defun refs--symbol-match-p (symbol)
+  "Return a matcher function that looks for mentions of SYMBOL in
+a form."
+  (lambda (form path)
+    ;; If any element in FORM matches symbol, return it.
+    (--any (eq it symbol) form)))
+
 (defun refs--read-and-find (buffer symbol match-p)
   "Read all the forms in BUFFER, and return a list of all forms that
 contain SYMBOL where MATCH-P returns t.
@@ -474,13 +481,17 @@ Display the results in a hyperlinked buffer.."
                          'face 'font-lock-variable-name-face))
                 (refs--macro-match-p symbol)))
 
+;; TODO: don't use refs--walk, it's too slow and inappropriate here.
 (defun refs-symbol (symbol)
   "Display all the references to SYMBOL."
   (interactive
    (list (read (completing-read
                 "Symbol: "
                 (refs--filter-obarray (lambda (_) t))))))
-  (refs--search symbol))
+  (refs--search symbol
+                (format "symbol '%s"
+                        (symbol-name symbol))
+                (refs--symbol-match-p symbol)))
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
