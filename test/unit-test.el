@@ -107,7 +107,7 @@ whilst visiting that file."
 (ert-deftest refs--find-calls-let-with-assignment ()
   "We shouldn't confuse let assignments with function calls."
   (with-temp-backed-buffer
-   "(let ((foo nil)) (let* ((foo nil)))"
+   "(let ((foo nil))) (let* ((foo nil)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       (refs--function-match-p 'foo))))
