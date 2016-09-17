@@ -135,7 +135,6 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; For each subform, get its position, and recurse.
       (--each (-zip form subforms-positions)
         (-let [(subform . pos) it]
-          ;; TODO: should we allow atoms?
           ;; TODO: add tests for improper lists
           (when (and (consp subform) (not (list-utils-improper-p subform)))
             (-let* (((subform-start subform-end) pos)
