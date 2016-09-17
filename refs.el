@@ -353,8 +353,7 @@ render a friendly results buffer."
             (insert (format "%s\n" (refs--containing-lines buf start-pos end-pos)))))
         (insert "\n")))
     (goto-char (point-min))
-    ;; Use special-mode so 'q' kills the buffer.
-    (special-mode)
+    (refs-mode)
     (setq buffer-read-only t)))
 
 (defun refs--search (symbol description match-p)
@@ -493,6 +492,11 @@ Display the results in a hyperlinked buffer.."
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))
     (message "Total LOC: %s" total-lines)))
+
+(define-derived-mode refs-mode special-mode "Refs"
+  "Major mode for results buffers when using refs commands.")
+
+(define-key refs-mode-map (kbd "q") #'kill-this-buffer)
 
 (provide 'refs)
 ;;; refs.el ends here
