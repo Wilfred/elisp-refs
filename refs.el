@@ -168,6 +168,11 @@ SYMBOL in a form."
        (equal (car path) '(let . 1))
        (equal (car path) '(let* . 1)))
       nil)
+     ;; Ignore (let ((SYMBOL ...)) ...)
+     ((or
+       (equal (cl-second path) '(let . 1))
+       (equal (cl-second path) '(let* . 1)))
+      nil)
      ;; (SYMBOL ...)
      ((eq (car form) symbol)
       t)
@@ -185,15 +190,22 @@ SYMBOL in a form."
 in a form."
   (lambda (form path)
     (cond
-     ;; ;; Ignore (defun _ (SYMBOL ...) ...)
-     ;; ((equal (car path) '(defun . 2))
-     ;;  nil)
-     ;; ;; Ignore (let (SYMBOL ...) ...)
-     ;; ;; and (let* (SYMBOL ...) ...)
-     ;; ((or
-     ;;   (equal (car path) '(let . 1))
-     ;;   (equal (car path) '(let* . 1)))
-     ;;  nil)
+     ;; Ignore (defun _ (SYMBOL ...) ...)
+     ((or (equal (car path) '(defun . 2))
+          (equal (car path) '(defsubst . 2))
+          (equal (car path) '(defmacro . 2)))
+      nil)
+     ;; Ignore (let (SYMBOL ...) ...)
+     ;; and (let* (SYMBOL ...) ...)
+     ((or
+       (equal (car path) '(let . 1))
+       (equal (car path) '(let* . 1)))
+      nil)
+     ;; Ignore (let ((SYMBOL ...)) ...)
+     ((or
+       (equal (cl-second path) '(let . 1))
+       (equal (cl-second path) '(let* . 1)))
+      nil)
      ;; (SYMBOL ...)
      ((eq (car form) symbol)
       t))))

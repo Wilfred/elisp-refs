@@ -133,6 +133,62 @@ whilst visiting that file."
                                       (refs--function-match-p 'foo))))
      (should (equal (length calls) 2)))))
 
+(ert-deftest refs--find-macros-basic ()
+  "Find simple function calls."
+  (with-temp-backed-buffer
+   "(foo)"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should
+      (equal calls (list (list '(foo) 1 6)))))))
+
+(ert-deftest refs--find-macros-params ()
+  "Find simple function calls."
+  (with-temp-backed-buffer
+   "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should (null calls)))))
+
+(ert-deftest refs--find-macros-let-without-assignment ()
+  "We shouldn't confuse let declarations with macro calls."
+  (with-temp-backed-buffer
+   "(let (foo)) (let* (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should (null calls)))))
+
+(ert-deftest refs--find-macros-let-with-assignment ()
+  "We shouldn't confuse let assignments with macro calls."
+  (with-temp-backed-buffer
+   "(let ((foo nil) (foo nil))) (let* ((foo nil) (foo nil)))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should (null calls)))))
+
+(ert-deftest refs--find-macros-let-with-assignment-call ()
+  "We should find macro calls in let assignments."
+  (with-temp-backed-buffer
+   "(let ((bar (foo)))) (let* ((bar (foo))))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should
+      (equal (length calls) 2)))))
+
+(ert-deftest refs--find-calls-let-body ()
+  "We should find macro calls in let body."
+  (with-temp-backed-buffer
+   "(let (bar) (foo)) (let* (bar) (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      (refs--macro-match-p 'foo))))
+     (should (equal (length calls) 2)))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and
