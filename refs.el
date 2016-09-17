@@ -134,18 +134,16 @@ START-POS and END-POS should be the position of FORM within BUFFER."
           (subforms-positions (refs--sexp-positions buffer start-pos end-pos)))
       ;; For each subform, if it's a list, recurse.
       (--each (-zip form subforms-positions)
-        (-let [(subform . pos) it]
+        (-let [(subform subform-start subform-end) it]
           ;; TODO: add tests for improper lists
           (when (and (consp subform) (not (list-utils-improper-p subform)))
-            (-let* (((subform-start subform-end) pos)
-                    (subform-matches
-                     (refs--walk
-                      buffer subform
-                      subform-start subform-end
-                      match-p
-                      (cons (cons (car form) it-index) path))))
-              (when subform-matches
-                (push subform-matches matches))))))
+            (-when-let (subform-matches
+                        (refs--walk
+                         buffer subform
+                         subform-start subform-end
+                         match-p
+                         (cons (cons (car form) it-index) path)))
+              (push subform-matches matches)))))
 
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches)))))
