@@ -25,6 +25,14 @@ whilst visiting that file."
          (kill-buffer ,buf-sym)
          (delete-file ,filename-sym)))))
 
+(ert-deftest refs--format-int ()
+  "Ensure we format thousands correctly in numbers."
+  (should (equal (refs--format-int 123) "123"))
+  (should (equal (refs--format-int -123) "-123"))
+  (should (equal (refs--format-int 1234) "1,234"))
+  (should (equal (refs--format-int -1234) "-1,234"))
+  (should (equal (refs--format-int 1234567) "1,234,567")))
+
 (ert-deftest refs--sexp-positions ()
   "Ensure we handle comments correctly when calculating sexp positions."
   (with-temp-backed-buffer

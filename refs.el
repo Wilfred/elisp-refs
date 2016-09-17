@@ -34,6 +34,19 @@
 (require 'shut-up)
 (eval-when-compile (require 'cl-lib))
 
+(defun refs--format-int (integer)
+  "Format INTEGER as a string, with , separating thousands."
+  (let* ((number (abs integer))
+         (parts nil))
+    (while (> number 999)
+      (push (format "%03d" (mod number 1000))
+            parts)
+      (setq number (/ number 1000)))
+    (push (format "%d" number) parts)
+    (concat
+     (if (< integer 0) "-" "")
+     (s-join "," parts))))
+
 (defsubst refs--start-pos (end-pos)
   "Find the start position of form ending at END-FORM
 in the current buffer."
@@ -339,9 +352,10 @@ render a friendly results buffer."
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert (format "Found %s references to %s in %s files.\n\n"
-                    (-sum (--map (length (car it)) results))
+                    (refs--format-int
+                     (-sum (--map (length (car it)) results)))
                     description
-                    (length results)))
+                    (refs--format-int (length results))))
     (--each results
       (-let* (((forms . buf) it)
               (path (with-current-buffer buf refs--path)))
