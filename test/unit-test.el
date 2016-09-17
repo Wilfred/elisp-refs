@@ -150,8 +150,12 @@ whilst visiting that file."
 
 (ert-deftest refs-function ()
   "Smoke test for `refs-function'."
-  (refs-function 'format))
+  (refs-function 'format)
+  (should
+   (equal (buffer-name) "*refs: mod*")))
 
 (ert-deftest refs-macro ()
   "Smoke test for `refs-macro'."
-  (refs-macro 'when))
+  (refs-macro 'when)
+  (should
+   (equal (buffer-name) "*refs: when*")))
