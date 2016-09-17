@@ -455,8 +455,6 @@ Display the results in a hyperlinked buffer.."
                 (refs--filter-obarray (lambda (_) t))))))
   (refs--search symbol))
 
-;; TODO: refs-variable, refs-any, refs-special
-
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
   `(let ((start-time (float-time)))
