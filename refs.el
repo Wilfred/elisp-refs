@@ -329,15 +329,16 @@ propertize them."
      'path path)
     (buffer-string)))
 
-(defun refs--show-results (symbol results)
+(defun refs--show-results (symbol description results)
   "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (insert (format "Found %s results in %s files.\n\n"
+    (insert (format "Found %s references to %s in %s files.\n\n"
                     (-sum (--map (length (car it)) results))
+                    description
                     (length results)))
     (--each results
       (-let* (((forms . buf) it)
@@ -354,7 +355,7 @@ render a friendly results buffer."
     (special-mode)
     (setq buffer-read-only t)))
 
-(defun refs--search (symbol match-p)
+(defun refs--search (symbol description match-p)
   "Search for references to SYMBOL in all loaded files, filtering forms with MATCH-P.
 Display the results in a hyperlinked buffer.."
   (let* ((loaded-paths (refs--loaded-files))
@@ -378,7 +379,7 @@ Display the results in a hyperlinked buffer.."
                 (message "Searched %s/%s files" searched total-paths))
               (cl-incf searched)))
           (message "Searched %s/%s files" total-paths total-paths)
-          (refs--show-results symbol forms-and-bufs))
+          (refs--show-results symbol description forms-and-bufs))
       ;; Clean up temporary buffers.
       (--each loaded-src-bufs (kill-buffer it)))))
 
@@ -389,7 +390,12 @@ Display the results in a hyperlinked buffer.."
    (list (read (completing-read
                 "Function: "
                 (refs--filter-obarray #'functionp)))))
-  (refs--search symbol (refs--function-match-p symbol)))
+  (refs--search symbol
+            (format "function %s"
+                    (propertize
+                     (symbol-name symbol)
+                     'face 'font-lock-function-name-face))
+            (refs--function-match-p symbol)))
 
 (defun refs-macro (symbol)
   "Display all the references to SYMBOL, a macro."
@@ -398,18 +404,28 @@ Display the results in a hyperlinked buffer.."
                 "Macro: "
                 (refs--filter-obarray #'macrop)))))
   ;; TODO: can we avoid passing SYMBOL in multiple places?
-  (refs--search symbol (refs--macro-match-p symbol)))
+  (refs--search symbol
+                (format "variable %s"
+                        (propertize
+                         (symbol-name symbol)
+                         'face 'font-lock-function-name-face))
+                (refs--macro-match-p symbol)))
 
 ;; TODO: currently we always search for function forms, which is
 ;; wrong.
 
 (defun refs-special (symbol)
-  "Display all the references to SYMBOL, a macro."
+  "Display all the references to SYMBOL, a special form."
   (interactive
    (list (read (completing-read
                 "Macro: "
                 (refs--filter-obarray #'special-form-p)))))
-  (refs--search symbol))
+  (refs--search symbol
+                (format "special form %s"
+                        (propertize
+                         (symbol-name symbol)
+                         'face 'font-lock-keyword-face))
+                (refs--macro-match-p symbol)))
 
 ;; TODO: these docstring are poor and don't say where we search.
 
@@ -424,7 +440,12 @@ Display the results in a hyperlinked buffer.."
                  (lambda (sym)
                    (and (not (special-form-p sym))
                         (not (functionp sym)))))))))
-  (refs--search symbol))
+  (refs--search symbol
+                (format "variable %s"
+                        (propertize
+                         (symbol-name symbol)
+                         'face 'font-lock-variable-name-face))
+                (refs--macro-match-p symbol)))
 
 (defun refs-symbol (symbol)
   "Display all the references to SYMBOL."
@@ -459,7 +480,7 @@ Display the results in a hyperlinked buffer.."
       (insert "(defun foo (bar) (if bar nil (with-current-buffer bar))) ;; blah")
       (setq-local refs--path "/tmp/foo.el"))
     (refs--print-time
-     (refs--show-results 'foo (list (cons forms buf))))
+     (refs--show-results 'foo "foo bar" (list (cons forms buf))))
     (kill-buffer buf)))
 
 (defun refs--report-loc ()
