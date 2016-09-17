@@ -145,7 +145,9 @@ SYMBOL in a form."
   (lambda (form path)
     (cond
      ;; Ignore (defun _ (SYMBOL ...) ...)
-     ((equal (car path) '(defun . 2))
+     ((or (equal (car path) '(defun . 2))
+          (equal (car path) '(defsubst . 2))
+          (equal (car path) '(defmacro . 2)))
       nil)
      ;; Ignore (let (SYMBOL ...) ...)
      ;; and (let* (SYMBOL ...) ...)

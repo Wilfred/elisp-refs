@@ -81,10 +81,10 @@ whilst visiting that file."
      (should
       (equal calls (list (list '(apply 'foo '(1 2)) 1 20)))))))
 
-(ert-deftest refs--find-calls-function-params ()
-  "Function parameters should not be considered function calls."
+(ert-deftest refs--find-calls-params ()
+  "Function or macro parameters should not be considered function calls."
   (with-temp-backed-buffer
-   "(defun bar (foo))"
+   "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       (refs--function-match-p 'foo))))
