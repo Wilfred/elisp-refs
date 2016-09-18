@@ -515,7 +515,8 @@ MATCH-FN should return a list where each element takes the form:
   "Evaluate FORM, and print the time taken."
   `(progn
      (message "Timing %s" ',form)
-     (-let [(total-time gc-runs gc-time) (benchmark-run 1 ,form)]
+     (-let [(total-time gc-runs gc-time)
+            (shut-up (benchmark-run 1 ,form))]
        (message "Elapsed time: %fs (%fs in %d GCs)"
                 total-time
                 gc-time
