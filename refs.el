@@ -492,20 +492,21 @@ Display the results in a hyperlinked buffer.."
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
-  `(let ((start-time (float-time)))
-     ,@body
-     (message "Took %s seconds"
-              (- (float-time) start-time))))
+  `(progn
+     (message "Timing %s" ',(car body))
+     (let ((start-time (float-time)))
+       ,@body
+       (message "Took %s seconds"
+                (- (float-time) start-time)))))
 
+;; TODO: measure refs--symbol performance
 (defun refs--bench ()
   "Measure runtime of searching."
   (interactive)
-  (message "Searching for 'mod")
+  ;; Measure a fairly uncommon function.
   (refs--print-time (refs-function 'mod))
-  (message "Searching for 'when")
-  ;; TODO: this is ugly: we're using when for a common symbol to
-  ;; stress test, but it's not actually a function.
-  (refs--print-time (refs-function 'when))
+  ;; Measure a common macro
+  (refs--print-time (refs-macro 'when))
   (message "Formatting 10,000 results")
   (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
         (buf (generate-new-buffer " *dummy-refs-buf*")))
