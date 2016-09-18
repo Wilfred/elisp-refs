@@ -221,6 +221,12 @@ whilst visiting that file."
   (should
    (equal (buffer-name) "*refs: when*")))
 
+(ert-deftest refs-variable ()
+  "Smoke test for `refs-variable'."
+  (refs-variable 'case-fold-search)
+  (should
+   (equal (buffer-name) "*refs: case-fold-search*")))
+
 (ert-deftest refs-symbol ()
   "Smoke test for `refs-symbol'."
   (refs-symbol 'format-message)
