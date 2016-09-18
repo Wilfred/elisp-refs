@@ -227,6 +227,12 @@ whilst visiting that file."
   (should
    (equal (buffer-name) "*refs: case-fold-search*")))
 
+(ert-deftest refs-special ()
+  "Smoke test for `refs-special'."
+  (refs-special 'prog2)
+  (should
+   (equal (buffer-name) "*refs: prog2*")))
+
 (ert-deftest refs-symbol ()
   "Smoke test for `refs-symbol'."
   (refs-symbol 'format-message)

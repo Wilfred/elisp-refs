@@ -206,6 +206,10 @@ START-POS and END-POS should be the position of FORM within BUFFER."
    ((eq (car form) symbol)
     t)))
 
+;; Looking for a special form is exactly the same as looking for a
+;; macro.
+(defalias 'refs--special-p 'refs--macro-p)
+
 (defun refs--symbol-p (symbol form path)
   "Return t if FORM contains references to SYMBOL."
   (--any (eq it symbol) form))
@@ -472,7 +476,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-keyword-face))
                 (lambda (buf)
-                  (refs--read-and-find buf symbol #'refs--macro-p))))
+                  (refs--read-and-find buf symbol #'refs--special-p))))
 
 ;; TODO: these docstring are poor and don't say where we search.
 
