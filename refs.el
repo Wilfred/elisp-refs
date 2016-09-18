@@ -409,7 +409,10 @@ Display the results in a hyperlinked buffer.
 
 MATCH-FN should return a list where each element takes the form:
 \(form start-pos end-pos)."
-  (let* ((loaded-paths (refs--loaded-files))
+  (let* (;; Our benchmark suggests we spend a lot of time in GC, and
+         ;; performance improves if we GC less frequently.
+         (gc-cons-percentage 0.8)
+         (loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
          (loaded-src-bufs (mapcar #'refs--contents-buffer loaded-paths)))
     ;; Use unwind-protect to ensure we always cleanup temporary
