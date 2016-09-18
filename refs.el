@@ -115,7 +115,7 @@ Internal implementation detail.")
 their positions) where MATCH-P returns t.
 
 MATCH-P is called with two arguments:
-\(CURRENT-FORM PATH INDEX).
+\(CURRENT-FORM PATH).
 
 PATH is the first element of all the enclosing forms of
 CURRENT-FORM, innermost first, along with the index of the
