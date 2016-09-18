@@ -210,6 +210,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
   "Return t if FORM contains references to SYMBOL."
   (--any (eq it symbol) form))
 
+;; TODO: benchmark building a list with `push' rather than using
+;; mapcat.
 (defun refs--read-and-find (buffer symbol match-p)
   "Read all the forms in BUFFER, and return a list of all forms that
 contain SYMBOL where MATCH-P returns t.
