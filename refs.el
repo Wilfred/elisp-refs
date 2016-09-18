@@ -111,8 +111,9 @@ Internal implementation detail.")
                   (f-abbrev refs--path) (point) err)))))))
 
 (defun refs--walk (buffer form start-pos end-pos match-p &optional path)
-  "Walk FORM, a nested list, and return a list of subforms (with
-their positions) where MATCH-P returns t.
+  "Walk FORM, a nested list, and return a list of sublists (with
+their positions) where MATCH-P returns t. FORM is traversed
+depth-first, left-to-right.
 
 MATCH-P is called with two arguments:
 \(CURRENT-FORM PATH).
