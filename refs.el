@@ -522,9 +522,13 @@ MATCH-FN should return a list where each element takes the form:
                 gc-time
                 gc-runs))))
 
+;; TODO: make this more representative by loading more elisp files
+;; before searching. Running this in a GUI is also conspicuously
+;; slower, which bench.sh doesn't reflect.
 (defun refs--bench ()
   "Measure runtime of searching."
   (interactive)
+  (refs--report-loc)
   ;; Measure a fairly uncommon function.
   (refs--print-time (refs-function 'mod))
   ;; Measure a common macro
@@ -550,7 +554,7 @@ MATCH-FN should return a list where each element takes the form:
                                    loaded-src-bufs))))
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))
-    (message "Total LOC: %s" total-lines)))
+    (message "Total LOC: %s" (refs--format-int total-lines))))
 
 (define-derived-mode refs-mode special-mode "Refs"
   "Major mode for results buffers when using refs commands.")
