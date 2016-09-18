@@ -189,6 +189,17 @@ whilst visiting that file."
                                       #'refs--macro-p)))
      (should (equal (length calls) 2)))))
 
+(ert-deftest refs--find-symbols ()
+  "We should find symbols, not their containing forms."
+  (with-temp-backed-buffer
+   "(foo foo)"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find-symbol refs-buf 'foo)))
+     (should
+      (equal
+       matches
+       (list '(foo 2 5) '(foo 6 9)))))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and
