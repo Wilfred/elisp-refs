@@ -306,7 +306,6 @@ Replaces tabs with spaces as a side effect."
          (unindented-lines (--map (substring it min-indent) lines)))
     (s-join "\n" unindented-lines)))
 
-;; TODO: rename to :-extract-snippet.
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
 START-POS and END-POS (inclusive).
