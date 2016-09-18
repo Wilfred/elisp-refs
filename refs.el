@@ -500,7 +500,7 @@ MATCH-FN should return a list where each element takes the form:
                 "Symbol: "
                 (refs--filter-obarray (lambda (_) t))))))
   (refs--search symbol
-                (format "symbol '%s"
+                (format "symbol %s"
                         (symbol-name symbol))
                 (lambda (buf)
                   (refs--read-and-find-symbol buf symbol))))
