@@ -219,7 +219,7 @@ with its start and end position."
     (-let [(form start-pos end-pos symbol-positions) it]
       ;; Optimisation: don't bother walking a form if contains no
       ;; references to the symbol we're looking for.
-      (when (assoc symbol symbol-positions)
+      (when (assq symbol symbol-positions)
         (refs--walk buffer form start-pos end-pos symbol match-p)))
     (refs--read-all-buffer-forms buffer))))
 
