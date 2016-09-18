@@ -497,7 +497,6 @@ MATCH-FN should return a list where each element takes the form:
        (message "Took %s seconds"
                 (- (float-time) start-time)))))
 
-;; TODO: measure refs--symbol performance
 (defun refs--bench ()
   "Measure runtime of searching."
   (interactive)
@@ -505,6 +504,8 @@ MATCH-FN should return a list where each element takes the form:
   (refs--print-time (refs-function 'mod))
   ;; Measure a common macro
   (refs--print-time (refs-macro 'when))
+  ;; Compare with searching for the same symbol without walking
+  (refs--print-time (refs-symbol 'when))
   (message "Formatting 10,000 results")
   (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
         (buf (generate-new-buffer " *dummy-refs-buf*")))
