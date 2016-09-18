@@ -387,9 +387,12 @@ render a friendly results buffer."
     (refs-mode)
     (setq buffer-read-only t)))
 
-(defun refs--search (symbol description match-p)
-  "Search for references to SYMBOL in all loaded files, filtering forms with MATCH-P.
-Display the results in a hyperlinked buffer.."
+(defun refs--search (symbol description match-fn)
+  "Search for references to SYMBOL in all loaded files, by calling MATCH-FN on each buffer.
+Display the results in a hyperlinked buffer.
+
+MATCH-FN should return a list where each element takes the form:
+\(form start-pos end-pos)."
   (let* ((loaded-paths (refs--loaded-files))
          (total-paths (length loaded-paths))
          (loaded-src-bufs (mapcar #'refs--contents-buffer loaded-paths)))
@@ -399,7 +402,7 @@ Display the results in a hyperlinked buffer.."
         (let ((searched 0)
               (forms-and-bufs nil))
           (dolist (buf loaded-src-bufs)
-            (let* ((matching-forms (refs--read-and-find buf symbol match-p)))
+            (let* ((matching-forms (funcall match-fn buf)))
               ;; If there were any matches in this buffer, push the
               ;; matches along with the buffer into our results
               ;; list.
@@ -423,11 +426,14 @@ Display the results in a hyperlinked buffer.."
                 "Function: "
                 (refs--filter-obarray #'functionp)))))
   (refs--search symbol
-            (format "function %s"
-                    (propertize
-                     (symbol-name symbol)
-                     'face 'font-lock-function-name-face))
-            (refs--function-match-p symbol)))
+                (format "function %s"
+                        (propertize
+                         (symbol-name symbol)
+                         'face 'font-lock-function-name-face))
+                (lambda (buf)
+                  ;; TODO: why not pass the symbol directly to the matcher function?
+                  (refs--read-and-find buf symbol
+                                       (refs--function-match-p symbol)))))
 
 (defun refs-macro (symbol)
   "Display all the references to SYMBOL, a macro."
@@ -437,14 +443,14 @@ Display the results in a hyperlinked buffer.."
                 (refs--filter-obarray #'macrop)))))
   ;; TODO: can we avoid passing SYMBOL in multiple places?
   (refs--search symbol
-                (format "variable %s"
+                (format "macro %s"
                         (propertize
                          (symbol-name symbol)
                          'face 'font-lock-function-name-face))
-                (refs--macro-match-p symbol)))
-
-;; TODO: currently we always search for function forms, which is
-;; wrong.
+                (lambda (buf)
+                  ;; TODO: why not pass the symbol directly to the matcher function?
+                  (refs--read-and-find buf symbol
+                                       (refs--macro-match-p symbol)))))
 
 (defun refs-special (symbol)
   "Display all the references to SYMBOL, a special form."
@@ -457,7 +463,10 @@ Display the results in a hyperlinked buffer.."
                         (propertize
                          (symbol-name symbol)
                          'face 'font-lock-keyword-face))
-                (refs--macro-match-p symbol)))
+                (lambda (buf)
+                  ;; TODO: why not pass the symbol directly to the matcher function?
+                  (refs--read-and-find buf symbol
+                                       (refs--macro-match-p symbol)))))
 
 ;; TODO: these docstring are poor and don't say where we search.
 
@@ -477,7 +486,9 @@ Display the results in a hyperlinked buffer.."
                         (propertize
                          (symbol-name symbol)
                          'face 'font-lock-variable-name-face))
-                (refs--macro-match-p symbol)))
+                (lambda (buf)
+                  (refs--read-and-find buf symbol
+                                       (refs--macro-match-p symbol)))))
 
 ;; TODO: don't use refs--walk, it's too slow and inappropriate here.
 (defun refs-symbol (symbol)
@@ -489,7 +500,9 @@ Display the results in a hyperlinked buffer.."
   (refs--search symbol
                 (format "symbol '%s"
                         (symbol-name symbol))
-                (refs--symbol-match-p symbol)))
+                (lambda (buf)
+                  (refs--read-and-find buf symbol
+                                       (refs--symbol-match-p symbol)))))
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
