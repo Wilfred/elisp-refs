@@ -225,7 +225,7 @@ with its start and end position."
    (--mapcat
     (-let [(form start-pos end-pos symbol-positions) it]
       ;; Optimisation: don't bother walking a form if contains no
-      ;; references to the form we're looking for.
+      ;; references to the symbol we're looking for.
       (when (assoc symbol symbol-positions)
         (refs--walk buffer form start-pos end-pos match-p)))
     (refs--read-all-buffer-forms buffer))))
