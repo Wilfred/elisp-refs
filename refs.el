@@ -78,14 +78,16 @@ Not recursive, so we don't consider subelements of nested sexps."
 
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
-Returns a list (form start-pos end-pos symbol-positions).
+Returns a list:
+\(form form-start-pos form-end-pos symbol-positions read-start-pos)
 
-Positions are 0-indexed, relative to start-pos."
+SYMBOL-POSITIONS are 0-indexed, relative to READ-START-POS."
   (let* ((read-with-symbol-positions t)
+         (read-start-pos (point))
          (form (read (current-buffer)))
          (end-pos (point))
          (start-pos (refs--start-pos end-pos)))
-    (list form start-pos end-pos read-symbol-positions-list)))
+    (list form start-pos end-pos read-symbol-positions-list read-start-pos)))
 
 (defvar refs--path nil
   "A buffer-local variable used by `refs--contents-buffer'.
@@ -216,11 +218,27 @@ For every matching form found, we return the form itself along
 with its start and end position."
   (-non-nil
    (--mapcat
-    (-let [(form start-pos end-pos symbol-positions) it]
+    (-let [(form start-pos end-pos symbol-positions read-start-pos) it]
       ;; Optimisation: don't bother walking a form if contains no
       ;; references to the symbol we're looking for.
       (when (assq symbol symbol-positions)
         (refs--walk buffer form start-pos end-pos symbol match-p)))
+    (refs--read-all-buffer-forms buffer))))
+
+(defun refs--read-and-find-symbol (buffer symbol)
+  "Read all the forms in BUFFER, and return a list of all
+positions of SYMBOL."
+  (-non-nil
+   (--mapcat
+    (-let [(_ _ _ symbol-positions read-start-pos) it]
+      (--map
+       (-let [(sym . offset) it]
+         (when (eq sym symbol)
+           (-let* ((start-pos (+ read-start-pos offset))
+                   (end-pos (+ start-pos (length (symbol-name sym)))))
+             (list sym start-pos end-pos))))
+       symbol-positions))
+
     (refs--read-all-buffer-forms buffer))))
 
 (defun refs--filter-obarray (pred)
@@ -475,7 +493,6 @@ MATCH-FN should return a list where each element takes the form:
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--macro-p))))
 
-;; TODO: don't use refs--walk, it's too slow and inappropriate here.
 (defun refs-symbol (symbol)
   "Display all the references to SYMBOL."
   (interactive
@@ -486,7 +503,7 @@ MATCH-FN should return a list where each element takes the form:
                 (format "symbol '%s"
                         (symbol-name symbol))
                 (lambda (buf)
-                  (refs--read-and-find buf symbol #'refs--symbol-p))))
+                  (refs--read-and-find-symbol buf symbol))))
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
