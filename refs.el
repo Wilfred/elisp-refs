@@ -511,14 +511,15 @@ MATCH-FN should return a list where each element takes the form:
                 (lambda (buf)
                   (refs--read-and-find-symbol buf symbol))))
 
-(defmacro refs--print-time (&rest body)
-  "Evaluate BODY, and print the time taken."
+(defmacro refs--print-time (form)
+  "Evaluate FORM, and print the time taken."
   `(progn
-     (message "Timing %s" ',(car body))
-     (let ((start-time (float-time)))
-       ,@body
-       (message "Took %s seconds"
-                (- (float-time) start-time)))))
+     (message "Timing %s" ',form)
+     (-let [(total-time gc-runs gc-time) (benchmark-run 1 ,form)]
+       (message "Elapsed time: %fs (%fs in %d GCs)"
+                total-time
+                gc-time
+                gc-runs))))
 
 (defun refs--bench ()
   "Measure runtime of searching."
