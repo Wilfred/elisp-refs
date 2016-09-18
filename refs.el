@@ -80,7 +80,7 @@ Not recursive, so we don't consider subelements of nested sexps."
   "Read a form from the current buffer, starting at point.
 Returns a list (form start-pos end-pos symbol-positions).
 
-Positions are 1-indexed, consistent with `point'."
+Positions are 0-indexed, relative to start-pos."
   (let* ((read-with-symbol-positions t)
          (form (read (current-buffer)))
          (end-pos (point))
