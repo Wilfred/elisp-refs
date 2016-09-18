@@ -184,7 +184,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
     t)))
 
 (defun refs--macro-p (symbol form path)
-  "Return t if FORM looks like a function call to SYMBOL."
+  "Return t if FORM looks like a macro call to SYMBOL."
   (cond
    ;; Ignore (defun _ (SYMBOL ...) ...)
    ((or (equal (car path) '(defun . 2))
