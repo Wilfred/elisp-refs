@@ -52,7 +52,7 @@ whilst visiting that file."
    "(foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
@@ -62,7 +62,7 @@ whilst visiting that file."
    "(baz (bar (foo)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should
       (equal calls (list (list '(foo) 11 16)))))))
 
@@ -72,7 +72,7 @@ whilst visiting that file."
    "(funcall 'foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should
       (equal calls (list (list '(funcall 'foo) 1 15)))))))
 
@@ -82,7 +82,7 @@ whilst visiting that file."
    "(apply 'foo '(1 2))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should
       (equal calls (list (list '(apply 'foo '(1 2)) 1 20)))))))
 
@@ -92,7 +92,7 @@ whilst visiting that file."
    "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-without-assignment ()
@@ -101,7 +101,7 @@ whilst visiting that file."
    "(let (foo)) (let* (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-with-assignment ()
@@ -110,7 +110,7 @@ whilst visiting that file."
    "(let ((foo nil))) (let* ((foo nil)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-calls-let-with-assignment-call ()
@@ -120,7 +120,7 @@ whilst visiting that file."
    "(let ((bar (foo)))) (let* ((bar (foo))))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should
       (equal (length calls) 2)))))
 
@@ -130,7 +130,7 @@ whilst visiting that file."
    "(let (bar) (foo)) (let* (bar) (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--function-match-p 'foo))))
+                                      #'refs--function-p)))
      (should (equal (length calls) 2)))))
 
 (ert-deftest refs--find-macros-basic ()
@@ -139,7 +139,7 @@ whilst visiting that file."
    "(foo)"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
@@ -149,7 +149,7 @@ whilst visiting that file."
    "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-macros-let-without-assignment ()
@@ -158,7 +158,7 @@ whilst visiting that file."
    "(let (foo)) (let* (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-macros-let-with-assignment ()
@@ -167,7 +167,7 @@ whilst visiting that file."
    "(let ((foo nil) (foo nil))) (let* ((foo nil) (foo nil)))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should (null calls)))))
 
 (ert-deftest refs--find-macros-let-with-assignment-call ()
@@ -176,7 +176,7 @@ whilst visiting that file."
    "(let ((bar (foo)))) (let* ((bar (foo))))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should
       (equal (length calls) 2)))))
 
@@ -186,7 +186,7 @@ whilst visiting that file."
    "(let (bar) (foo)) (let* (bar) (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
-                                      (refs--macro-match-p 'foo))))
+                                      #'refs--macro-p)))
      (should (equal (length calls) 2)))))
 
 (ert-deftest refs--unindent-rigidly ()

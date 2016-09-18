@@ -110,13 +110,13 @@ Internal implementation detail.")
            (error "Unexpected error whilst reading %s position %s: %s"
                   (f-abbrev refs--path) (point) err)))))))
 
-(defun refs--walk (buffer form start-pos end-pos match-p &optional path)
+(defun refs--walk (buffer form start-pos end-pos symbol match-p &optional path)
   "Walk FORM, a nested list, and return a list of sublists (with
 their positions) where MATCH-P returns t. FORM is traversed
 depth-first, left-to-right.
 
-MATCH-P is called with two arguments:
-\(CURRENT-FORM PATH).
+MATCH-P is called with three arguments:
+\(SYMBOL CURRENT-FORM PATH).
 
 PATH is the first element of all the enclosing forms of
 CURRENT-FORM, innermost first, along with the index of the
@@ -126,7 +126,7 @@ For example if we are looking at h in (e f (g h)), PATH takes the
 value ((g . 1) (e . 2)).
 
 START-POS and END-POS should be the position of FORM within BUFFER."
-  (if (funcall match-p form path)
+  (if (funcall match-p symbol form path)
       ;; If this form matches, just return it, along with the position.
       (list (list form start-pos end-pos))
     ;; Otherwise, recurse on the subforms.
@@ -142,7 +142,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
                         (refs--walk
                          buffer subform
                          subform-start subform-end
-                         match-p
+                         symbol match-p
                          (cons (cons (car form) it-index) path)))
               (push subform-matches matches)))))
 
@@ -150,70 +150,63 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       (apply #'append (nreverse matches)))))
 
 ;; TODO: Handle sharp-quoted function references.
-(defun refs--function-match-p (symbol)
-  "Return a matcher function that looks for function calls to
-SYMBOL in a form."
-  (lambda (form path)
-    (cond
-     ;; Ignore (defun _ (SYMBOL ...) ...)
-     ((or (equal (car path) '(defun . 2))
-          (equal (car path) '(defsubst . 2))
-          (equal (car path) '(defmacro . 2)))
-      nil)
-     ;; Ignore (let (SYMBOL ...) ...)
-     ;; and (let* (SYMBOL ...) ...)
-     ((or
-       (equal (car path) '(let . 1))
-       (equal (car path) '(let* . 1)))
-      nil)
-     ;; Ignore (let ((SYMBOL ...)) ...)
-     ((or
-       (equal (cl-second path) '(let . 1))
-       (equal (cl-second path) '(let* . 1)))
-      nil)
-     ;; (SYMBOL ...)
-     ((eq (car form) symbol)
-      t)
-     ;; (funcall 'SYMBOL ...)
-     ((and (eq (car form) 'funcall)
-           (equal `',symbol (cl-second form)))
-      t)
-     ;; (apply 'SYMBOL ...)
-     ((and (eq (car form) 'apply)
-           (equal `',symbol (cl-second form)))
-      t))))
+(defun refs--function-p (symbol form path)
+  "Return t if FORM looks like a function call to SYMBOL."
+  (cond
+   ;; Ignore (defun _ (SYMBOL ...) ...)
+   ((or (equal (car path) '(defun . 2))
+        (equal (car path) '(defsubst . 2))
+        (equal (car path) '(defmacro . 2)))
+    nil)
+   ;; Ignore (let (SYMBOL ...) ...)
+   ;; and (let* (SYMBOL ...) ...)
+   ((or
+     (equal (car path) '(let . 1))
+     (equal (car path) '(let* . 1)))
+    nil)
+   ;; Ignore (let ((SYMBOL ...)) ...)
+   ((or
+     (equal (cl-second path) '(let . 1))
+     (equal (cl-second path) '(let* . 1)))
+    nil)
+   ;; (SYMBOL ...)
+   ((eq (car form) symbol)
+    t)
+   ;; (funcall 'SYMBOL ...)
+   ((and (eq (car form) 'funcall)
+         (equal `',symbol (cl-second form)))
+    t)
+   ;; (apply 'SYMBOL ...)
+   ((and (eq (car form) 'apply)
+         (equal `',symbol (cl-second form)))
+    t)))
 
-(defun refs--macro-match-p (symbol)
-  "Return a matcher function that looks for macro calls to SYMBOL
-in a form."
-  (lambda (form path)
-    (cond
-     ;; Ignore (defun _ (SYMBOL ...) ...)
-     ((or (equal (car path) '(defun . 2))
-          (equal (car path) '(defsubst . 2))
-          (equal (car path) '(defmacro . 2)))
-      nil)
-     ;; Ignore (let (SYMBOL ...) ...)
-     ;; and (let* (SYMBOL ...) ...)
-     ((or
-       (equal (car path) '(let . 1))
-       (equal (car path) '(let* . 1)))
-      nil)
-     ;; Ignore (let ((SYMBOL ...)) ...)
-     ((or
-       (equal (cl-second path) '(let . 1))
-       (equal (cl-second path) '(let* . 1)))
-      nil)
-     ;; (SYMBOL ...)
-     ((eq (car form) symbol)
-      t))))
+(defun refs--macro-p (symbol form path)
+  "Return t if FORM looks like a function call to SYMBOL."
+  (cond
+   ;; Ignore (defun _ (SYMBOL ...) ...)
+   ((or (equal (car path) '(defun . 2))
+        (equal (car path) '(defsubst . 2))
+        (equal (car path) '(defmacro . 2)))
+    nil)
+   ;; Ignore (let (SYMBOL ...) ...)
+   ;; and (let* (SYMBOL ...) ...)
+   ((or
+     (equal (car path) '(let . 1))
+     (equal (car path) '(let* . 1)))
+    nil)
+   ;; Ignore (let ((SYMBOL ...)) ...)
+   ((or
+     (equal (cl-second path) '(let . 1))
+     (equal (cl-second path) '(let* . 1)))
+    nil)
+   ;; (SYMBOL ...)
+   ((eq (car form) symbol)
+    t)))
 
-(defun refs--symbol-match-p (symbol)
-  "Return a matcher function that looks for mentions of SYMBOL in
-a form."
-  (lambda (form path)
-    ;; If any element in FORM matches symbol, return it.
-    (--any (eq it symbol) form)))
+(defun refs--symbol-p (symbol form path)
+  "Return t if FORM contains references to SYMBOL."
+  (--any (eq it symbol) form))
 
 (defun refs--read-and-find (buffer symbol match-p)
   "Read all the forms in BUFFER, and return a list of all forms that
@@ -227,7 +220,7 @@ with its start and end position."
       ;; Optimisation: don't bother walking a form if contains no
       ;; references to the symbol we're looking for.
       (when (assoc symbol symbol-positions)
-        (refs--walk buffer form start-pos end-pos match-p)))
+        (refs--walk buffer form start-pos end-pos symbol match-p)))
     (refs--read-all-buffer-forms buffer))))
 
 (defun refs--filter-obarray (pred)
@@ -431,9 +424,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-function-name-face))
                 (lambda (buf)
-                  ;; TODO: why not pass the symbol directly to the matcher function?
-                  (refs--read-and-find buf symbol
-                                       (refs--function-match-p symbol)))))
+                  (refs--read-and-find buf symbol #'refs--function-p))))
 
 (defun refs-macro (symbol)
   "Display all the references to SYMBOL, a macro."
@@ -448,9 +439,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-function-name-face))
                 (lambda (buf)
-                  ;; TODO: why not pass the symbol directly to the matcher function?
-                  (refs--read-and-find buf symbol
-                                       (refs--macro-match-p symbol)))))
+                  (refs--read-and-find buf symbol #'refs--macro-p))))
 
 (defun refs-special (symbol)
   "Display all the references to SYMBOL, a special form."
@@ -464,9 +453,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-keyword-face))
                 (lambda (buf)
-                  ;; TODO: why not pass the symbol directly to the matcher function?
-                  (refs--read-and-find buf symbol
-                                       (refs--macro-match-p symbol)))))
+                  (refs--read-and-find buf symbol #'refs--macro-p))))
 
 ;; TODO: these docstring are poor and don't say where we search.
 
@@ -487,8 +474,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-variable-name-face))
                 (lambda (buf)
-                  (refs--read-and-find buf symbol
-                                       (refs--macro-match-p symbol)))))
+                  (refs--read-and-find buf symbol #'refs--macro-p))))
 
 ;; TODO: don't use refs--walk, it's too slow and inappropriate here.
 (defun refs-symbol (symbol)
@@ -501,8 +487,7 @@ MATCH-FN should return a list where each element takes the form:
                 (format "symbol '%s"
                         (symbol-name symbol))
                 (lambda (buf)
-                  (refs--read-and-find buf symbol
-                                       (refs--symbol-match-p symbol)))))
+                  (refs--read-and-find buf symbol #'refs--symbol-p))))
 
 (defmacro refs--print-time (&rest body)
   "Evaluate BODY, and print the time taken."
