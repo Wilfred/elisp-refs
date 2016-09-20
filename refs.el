@@ -336,7 +336,7 @@ START-POS and END-POS (inclusive).
 
 For the characters that are between START-POS and END-POS,
 propertize them."
-  (let (expanded-start-pos expanded-end-pos section)
+  (let (expanded-start-pos expanded-end-pos)
     (with-current-buffer buffer
       ;; Expand START-POS and END-POS to line boundaries.
       (goto-char start-pos)
