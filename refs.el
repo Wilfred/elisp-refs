@@ -320,15 +320,40 @@ don't want to create lots of temporary buffers.")
   "Given an indented STRING, unindent rigidly until
 at least one line has no indent.
 
+STRING should have a 'refs-start-pos property. The returned
+string will have this property updated to reflect the unindent.
+
 Replaces tabs with spaces as a side effect."
-  (let* ((lines (s-lines (s-replace "\t" (s-repeat tab-width " ") string)))
+  ;; We need to replace tabs with spaces, as we may unindent by less
+  ;; than one whole tab.
+  (setq string (s-replace "\t" (s-repeat tab-width " ") string))
+  (let* ((lines (s-lines string))
+         ;; Get the leading whitespace for each line.
          (indents (--map (car (s-match (rx bos (+ whitespace)) it))
                          lines))
-         (space-indents (--map (s-replace "\t" (s-repeat tab-width " ") (or it ""))
-                               indents))
-         (min-indent (-min (--map (length it) space-indents)))
-         (unindented-lines (--map (substring it min-indent) lines)))
-    (s-join "\n" unindented-lines)))
+         (min-indent (-min (--map (length it) indents)))
+         (unindented-lines (--map (substring it min-indent) lines))
+         ;; Update the 'refs-start-pos property on the lines.
+         (propertized-lines (--map (propertize
+                                    it 'refs-start-pos
+                                    (+
+                                     (get-text-property 0 'refs-start-pos it)
+                                     min-indent))
+                                   unindented-lines)))
+    (s-join "\n" propertized-lines)))
+
+(defun refs--add-match-properties (string start-pos path)
+  (let ((propertized-lines nil)
+        (pos start-pos))
+    (dolist (line (s-lines string))
+      (push (propertize line
+                        'refs-start-pos pos
+                        'refs-path path)
+            propertized-lines)
+      ;; TODO: what about tabs?
+      (cl-incf pos (1+ (length line))))
+    ;; TODO: can we still visit from the end of the line?
+    (s-join "\n" (nreverse propertized-lines))))
 
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -353,10 +378,14 @@ propertize them."
         ;; highlight the match as code, but highlight the rest as as
         ;; comments.
         (refs--unindent-rigidly
-         (concat
-          (propertize before-match 'face 'font-lock-comment-face)
-          (refs--syntax-highlight (buffer-substring start-pos end-pos))
-          (propertize after-match 'face 'font-lock-comment-face)))))))
+         (refs--add-match-properties
+          (concat
+           (propertize before-match
+                       'face 'font-lock-comment-face)
+           (refs--syntax-highlight (buffer-substring start-pos end-pos))
+           (propertize after-match
+                       'face 'font-lock-comment-face))
+          expanded-start-pos refs--path))))))
 
 (defun refs--find-file (button)
   "Open the file referenced by BUTTON."
@@ -563,7 +592,23 @@ MATCH-FN should return a list where each element takes the form:
 (define-derived-mode refs-mode special-mode "Refs"
   "Major mode for results buffers when using refs commands.")
 
+(defun refs-visit-match ()
+  "Go to the search result at point."
+  (interactive)
+  (let ((path (get-text-property (point) 'refs-path))
+        (pos (get-text-property (point) 'refs-start-pos))
+        (match-column (current-column)))
+    (when (null path)
+      (user-error "No match here"))
+
+    (find-file path)
+    (goto-char pos)
+    ;; Move point so we're on the same char in the buffer that we were
+    ;; on in the results buffer.
+    (forward-char match-column)))
+
 (define-key refs-mode-map (kbd "q") #'kill-this-buffer)
+(define-key refs-mode-map (kbd "RET") #'refs-visit-match)
 
 (provide 'refs)
 ;;; refs.el ends here
