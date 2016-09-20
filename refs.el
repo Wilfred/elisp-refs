@@ -538,6 +538,7 @@ MATCH-FN should return a list where each element takes the form:
   (refs--print-time (refs-macro 'when))
   ;; Compare with searching for the same symbol without walking
   (refs--print-time (refs-symbol 'when))
+  ;; Synthetic test of a large number of results.
   (message "Formatting 10,000 results")
   (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
         (buf (generate-new-buffer " *dummy-refs-buf*")))
