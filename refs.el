@@ -350,7 +350,7 @@ propertize them."
       (let* ((before-match (buffer-substring expanded-start-pos start-pos))
              (after-match (buffer-substring end-pos expanded-end-pos)))
         ;; Concat the extra text with the actual match, ensuring we
-        ;; highlight the match as code but highlight the rest as as
+        ;; highlight the match as code, but highlight the rest as as
         ;; comments.
         (refs--unindent-rigidly
          (concat
