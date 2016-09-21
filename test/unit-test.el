@@ -56,7 +56,19 @@ right places."
     ;; 'refs-start-pos should have a different value on the second line.
     (should
      (equal (get-text-property 4 'refs-start-pos result)
-            127))))
+            127)))
+  ;; If we have empty lines, we should still set the properties on
+  ;; every point in the string.
+  (let ((result (refs--add-match-properties "foo\n\n" 123 "/baz")))
+    (cl-loop for i from 0 below (length result) do
+             (should (get-text-property i 'refs-path result))
+             (should (get-text-property i 'refs-start-pos result)))))
+
+(ert-deftest refs--unindent-split-properties ()
+  "Ensure we can still unindent when properties are split
+into separate region. Regression test for a very subtle bug."
+  (let ((s #("e.\n" 0 2 (refs-start-pos 0) 2 3 (refs-start-pos 0))))
+    (refs--unindent-rigidly s)))
 
 (ert-deftest refs--sexp-positions ()
   "Ensure we handle comments correctly when calculating sexp positions."

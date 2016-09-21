@@ -322,16 +322,25 @@ don't want to create lots of temporary buffers.")
   ;; one whole tab.
   (s-replace "\t" (s-repeat tab-width " ") string))
 
+(defun refs--lines (string)
+  "Return a list of all the lines in STRING.
+'a\nb' -> ('a\n' 'b')"
+  (let ((lines nil))
+    (while (> (length string) 0)
+      (let ((index (s-index-of "\n" string)))
+        (if index
+            (progn
+              (push (substring string 0 (1+ index)) lines)
+              (setq string (substring string (1+ index))))
+          (push string lines)
+          (setq string ""))))
+    (nreverse lines)))
+
 (defun refs--map-lines (string fn)
   "Execute FN for each line in string, and join the result together."
-  (let ((result nil)
-        (lines (s-lines string))
-        (i 0))
-    (dolist (line lines)
-      (unless (equal i (1- (length lines)))
-        (setq line (concat line "\n")))
-      (push (funcall fn line) result)
-      (cl-incf i))
+  (let ((result nil))
+    (dolist (line (refs--lines string))
+      (push (funcall fn line) result))
     (apply #'concat (nreverse result))))
 
 (defmacro refs--amap-lines (string form)
