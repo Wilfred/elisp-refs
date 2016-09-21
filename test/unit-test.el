@@ -252,13 +252,14 @@ into separate region. Regression test for a very subtle bug."
     (refs--unindent-rigidly
      (propertize "foo\n bar" 'refs-start-pos 0))
     "foo\n bar"))
-  ;; TODO: updating position
+  ;; We should have position properties in the entire string,
+  ;; incremented by the indent (1 in this case).
   (let ((result (refs--unindent-rigidly
-                 (propertize "foo\nbar" 'refs-start-pos 0))))
+                 (propertize " foo\n bar" 'refs-start-pos 0))))
     (cl-loop for i from 0 below (length result) do
              (should
-              (get-text-property i 'refs-start-pos result))))
-  )
+              (equal
+               1 (get-text-property i 'refs-start-pos result))))))
 
 (ert-deftest refs--replace-tabs ()
   "Ensure we replace all tabs in STRING."
