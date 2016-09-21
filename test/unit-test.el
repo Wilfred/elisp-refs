@@ -33,6 +33,31 @@ whilst visiting that file."
   (should (equal (refs--format-int -1234) "-1,234"))
   (should (equal (refs--format-int 1234567) "1,234,567")))
 
+(ert-deftest refs--add-match-properties ()
+  "Ensure we set properties, and those properties are in the
+right places."
+  ;; Basic test: the string should be unmodified.
+  (should
+   (equal
+    (refs--add-match-properties "foo" 123 "/baz")
+    "foo"))
+  ;; Multiline string tests:
+  (let ((result (refs--add-match-properties "foo\nbar" 123 "/baz")))
+    ;; The string should be unmodified.
+    (should
+     (equal result "foo\nbar"))
+    ;; We should set the properties expected.
+    (should (equal (get-text-property 0 'refs-path result) "/baz"))
+    (should (equal (get-text-property 0 'refs-start-pos result) 123))
+    ;; These properties should be set on every point in the string.
+    (cl-loop for i from 0 below (length result) do
+             (should
+              (get-text-property i 'refs-path result)))
+    ;; 'refs-start-pos should have a different value on the second line.
+    (should
+     (equal (get-text-property 4 'refs-start-pos result)
+            127))))
+
 (ert-deftest refs--sexp-positions ()
   "Ensure we handle comments correctly when calculating sexp positions."
   (with-temp-backed-buffer
@@ -206,19 +231,30 @@ whilst visiting that file."
   ;; unindent by that amount.
   (should
    (equal
-    (refs--unindent-rigidly "   foo\n  bar\n    baz")
+    (refs--unindent-rigidly
+     (propertize "   foo\n  bar\n    baz" 'refs-start-pos 0))
     " foo\nbar\n  baz"))
   ;; If one of the lines has no indent, do nothing.
   (should
    (equal
-    (refs--unindent-rigidly "foo\n bar")
+    (refs--unindent-rigidly
+     (propertize "foo\n bar" 'refs-start-pos 0))
     "foo\n bar"))
-  ;; Consider tabs to be equivalent to `tab-width' spaces.
-  (let ((tab-width 8))
-    (should
-     (equal
-      (refs--unindent-rigidly "\tx\n    y")
-      "    x\ny"))))
+  ;; TODO: updating position
+  (let ((result (refs--unindent-rigidly
+                 (propertize "foo\nbar" 'refs-start-pos 0))))
+    (cl-loop for i from 0 below (length result) do
+             (should
+              (get-text-property i 'refs-start-pos result))))
+  )
+
+(ert-deftest refs--replace-tabs ()
+  "Ensure we replace all tabs in STRING."
+  (let ((tab-width 4))
+    ;; zero tabs
+    (should (equal (refs--replace-tabs " a ") " a "))
+    ;; many tabs
+    (should (equal (refs--replace-tabs "a\t\tb") "a        b"))))
 
 (ert-deftest refs-function ()
   "Smoke test for `refs-function'."

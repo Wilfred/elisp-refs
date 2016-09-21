@@ -316,44 +316,54 @@ don't want to create lots of temporary buffers.")
         (font-lock-fontify-buffer)))
     (buffer-string)))
 
+(defun refs--replace-tabs (string)
+  "Replace tabs in STRING with spaces."
+  ;; This is important for unindenting, as may unindent by less than
+  ;; one whole tab.
+  (s-replace "\t" (s-repeat tab-width " ") string))
+
+(defun refs--map-lines (string fn)
+  "Execute FN for each line in string, and join the result together."
+  (let ((result nil)
+        (lines (s-lines string))
+        (i 0))
+    (dolist (line lines)
+      (unless (equal i (1- (length lines)))
+        (setq line (concat line "\n")))
+      (push (funcall fn line) result)
+      (cl-incf i))
+    (apply #'concat (nreverse result))))
+
+(defmacro refs--amap-lines (string form)
+  "Anaphoric version of `refs--map-lines'."
+  (declare (indent 1) (debug t))
+  `(refs--map-lines ,string
+                    (lambda (it) ,form)))
+
 (defun refs--unindent-rigidly (string)
   "Given an indented STRING, unindent rigidly until
 at least one line has no indent.
 
 STRING should have a 'refs-start-pos property. The returned
-string will have this property updated to reflect the unindent.
-
-Replaces tabs with spaces as a side effect."
-  ;; We need to replace tabs with spaces, as we may unindent by less
-  ;; than one whole tab.
-  (setq string (s-replace "\t" (s-repeat tab-width " ") string))
-  (let* ((lines (s-lines string))
-         ;; Get the leading whitespace for each line.
+string will have this property updated to reflect the unindent."
+  (let* (;; Get the leading whitespace for each line.
          (indents (--map (car (s-match (rx bos (+ whitespace)) it))
-                         lines))
-         (min-indent (-min (--map (length it) indents)))
-         (unindented-lines (--map (substring it min-indent) lines))
-         ;; Update the 'refs-start-pos property on the lines.
-         (propertized-lines (--map (propertize
-                                    it 'refs-start-pos
-                                    (+
-                                     (get-text-property 0 'refs-start-pos it)
-                                     min-indent))
-                                   unindented-lines)))
-    (s-join "\n" propertized-lines)))
+                         (s-lines string)))
+         (min-indent (-min (--map (length it) indents))))
+    (refs--amap-lines string
+      (let ((unindented (substring it min-indent)))
+        ;; Update the 'refs-start-pos property on the lines.
+        (propertize
+         unindented
+         'refs-start-pos
+         (+ (get-text-property 0 'refs-start-pos it) min-indent))))))
 
 (defun refs--add-match-properties (string start-pos path)
-  (let ((propertized-lines nil)
-        (pos start-pos))
-    (dolist (line (s-lines string))
-      (push (propertize line
-                        'refs-start-pos pos
-                        'refs-path path)
-            propertized-lines)
-      ;; TODO: what about tabs?
-      (cl-incf pos (1+ (length line))))
-    ;; TODO: can we still visit from the end of the line?
-    (s-join "\n" (nreverse propertized-lines))))
+  (let ((pos start-pos))
+    (refs--amap-lines string
+      (prog1
+          (propertize it 'refs-start-pos pos 'refs-path path)
+        (cl-incf pos (length it))))))
 
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -379,12 +389,13 @@ propertize them."
         ;; comments.
         (refs--unindent-rigidly
          (refs--add-match-properties
-          (concat
-           (propertize before-match
-                       'face 'font-lock-comment-face)
-           (refs--syntax-highlight (buffer-substring start-pos end-pos))
-           (propertize after-match
-                       'face 'font-lock-comment-face))
+          (refs--replace-tabs
+           (concat
+            (propertize before-match
+                        'face 'font-lock-comment-face)
+            (refs--syntax-highlight (buffer-substring start-pos end-pos))
+            (propertize after-match
+                        'face 'font-lock-comment-face)))
           expanded-start-pos refs--path))))))
 
 (defun refs--find-file (button)
