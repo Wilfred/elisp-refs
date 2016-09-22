@@ -355,24 +355,16 @@ at least one line has no indent.
 
 STRING should have a 'refs-start-pos property. The returned
 string will have this property updated to reflect the unindent."
-  (let* (;; Get the leading whitespace for each line.
+  (let* ((lines (s-lines string))
+         ;; Get the leading whitespace for each line.
          (indents (--map (car (s-match (rx bos (+ whitespace)) it))
-                         (s-lines string)))
-         (min-indent (-min (--map (length it) indents))))
-    (refs--amap-lines string
-      (let ((unindented (substring it min-indent)))
-        ;; Update the 'refs-start-pos property on the lines.
-        (propertize
-         unindented
-         'refs-start-pos
-         (+ (get-text-property 0 'refs-start-pos it) min-indent))))))
-
-(defun refs--add-match-properties (string start-pos path)
-  (let ((pos start-pos))
-    (refs--amap-lines string
-      (prog1
-          (propertize it 'refs-start-pos pos 'refs-path path)
-        (cl-incf pos (length it))))))
+                         lines))
+         (min-indent (-min (--map (length it) indents)))
+         (unindented-lines (--map (substring it min-indent) lines)))
+    (propertize
+     (refs--amap-lines string
+       (substring it min-indent))
+     'refs-unindented min-indent)))
 
 (defun refs--containing-lines (buffer start-pos end-pos)
   "Return a string, all the lines in BUFFER that are between
@@ -392,20 +384,21 @@ propertize them."
 
       ;; Extract the rest of the line before and after the section we're interested in.
       (let* ((before-match (buffer-substring expanded-start-pos start-pos))
-             (after-match (buffer-substring end-pos expanded-end-pos)))
-        ;; Concat the extra text with the actual match, ensuring we
-        ;; highlight the match as code, but highlight the rest as as
-        ;; comments.
-        (refs--unindent-rigidly
-         (refs--add-match-properties
-          (refs--replace-tabs
-           (concat
-            (propertize before-match
-                        'face 'font-lock-comment-face)
-            (refs--syntax-highlight (buffer-substring start-pos end-pos))
-            (propertize after-match
-                        'face 'font-lock-comment-face)))
-          expanded-start-pos refs--path))))))
+             (after-match (buffer-substring end-pos expanded-end-pos))
+             ;; Concat the extra text with the actual match, ensuring we
+             ;; highlight the match as code, but highlight the rest as as
+             ;; comments.
+             (text (concat
+                    (propertize before-match
+                                'face 'font-lock-comment-face)
+                    (refs--syntax-highlight (buffer-substring start-pos end-pos))
+                    (propertize after-match
+                                'face 'font-lock-comment-face))))
+        (-> text
+            (refs--replace-tabs)
+            (refs--unindent-rigidly)
+            (propertize 'refs-start-pos expanded-start-pos
+                        'refs-path refs--path))))))
 
 (defun refs--find-file (button)
   "Open the file referenced by BUTTON."

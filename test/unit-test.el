@@ -36,37 +36,6 @@ whilst visiting that file."
   (should (equal (refs--format-int -1234) "-1,234"))
   (should (equal (refs--format-int 1234567) "1,234,567")))
 
-(ert-deftest refs--add-match-properties ()
-  "Ensure we set properties, and those properties are in the
-right places."
-  ;; Basic test: the string should be unmodified.
-  (should
-   (equal
-    (refs--add-match-properties "foo" 123 "/baz")
-    "foo"))
-  ;; Multiline string tests:
-  (let ((result (refs--add-match-properties "foo\nbar" 123 "/baz")))
-    ;; The string should be unmodified.
-    (should
-     (equal result "foo\nbar"))
-    ;; We should set the properties expected.
-    (should (equal (get-text-property 0 'refs-path result) "/baz"))
-    (should (equal (get-text-property 0 'refs-start-pos result) 123))
-    ;; These properties should be set on every point in the string.
-    (cl-loop for i from 0 below (length result) do
-             (should
-              (get-text-property i 'refs-path result)))
-    ;; 'refs-start-pos should have a different value on the second line.
-    (should
-     (equal (get-text-property 4 'refs-start-pos result)
-            127)))
-  ;; If we have empty lines, we should still set the properties on
-  ;; every point in the string.
-  (let ((result (refs--add-match-properties "foo\n\n" 123 "/baz")))
-    (cl-loop for i from 0 below (length result) do
-             (should (get-text-property i 'refs-path result))
-             (should (get-text-property i 'refs-start-pos result)))))
-
 (ert-deftest refs--unindent-split-properties ()
   "Ensure we can still unindent when properties are split
 into separate region. Regression test for a very subtle bug."
@@ -246,23 +215,27 @@ into separate region. Regression test for a very subtle bug."
   ;; unindent by that amount.
   (should
    (equal
-    (refs--unindent-rigidly
-     (propertize "   foo\n  bar\n    baz" 'refs-start-pos 0))
+    (refs--unindent-rigidly "   foo\n  bar\n    baz")
     " foo\nbar\n  baz"))
   ;; If one of the lines has no indent, do nothing.
   (should
    (equal
-    (refs--unindent-rigidly
-     (propertize "foo\n bar" 'refs-start-pos 0))
+    (refs--unindent-rigidly "foo\n bar")
     "foo\n bar"))
-  ;; We should have position properties in the entire string,
-  ;; incremented by the indent (1 in this case).
+  ;; We should have set refs-unindented correctly.
+  (should
+   (equal
+    (get-text-property
+     0
+     'refs-unindented
+     (refs--unindent-rigidly "  foo"))
+    2))
+  ;; We should still have refs-path properties in the entire string.
   (let ((result (refs--unindent-rigidly
-                 (propertize " foo\n bar" 'refs-start-pos 0))))
+                 (propertize " foo\n bar" 'refs-path "/foo"))))
     (cl-loop for i from 0 below (length result) do
              (should
-              (equal
-               1 (get-text-property i 'refs-start-pos result))))))
+              (get-text-property i 'refs-path result)))))
 
 (ert-deftest refs--replace-tabs ()
   "Ensure we replace all tabs in STRING."
