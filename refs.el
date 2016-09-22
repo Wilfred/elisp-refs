@@ -563,6 +563,8 @@ MATCH-FN should return a list where each element takes the form:
                 (lambda (buf)
                   (refs--read-and-find-symbol buf symbol))))
 
+;; TODO: move benchmarking to a separate file.
+
 (defmacro refs--print-time (form)
   "Evaluate FORM, and print the time taken."
   `(progn
