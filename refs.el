@@ -343,12 +343,6 @@ don't want to create lots of temporary buffers.")
       (push (funcall fn line) result))
     (apply #'concat (nreverse result))))
 
-(defmacro refs--amap-lines (string form)
-  "Anaphoric version of `refs--map-lines'."
-  (declare (indent 1) (debug t))
-  `(refs--map-lines ,string
-                    (lambda (it) ,form)))
-
 (defun refs--unindent-rigidly (string)
   "Given an indented STRING, unindent rigidly until
 at least one line has no indent.
@@ -359,11 +353,11 @@ string will have this property updated to reflect the unindent."
          ;; Get the leading whitespace for each line.
          (indents (--map (car (s-match (rx bos (+ whitespace)) it))
                          lines))
-         (min-indent (-min (--map (length it) indents)))
-         (unindented-lines (--map (substring it min-indent) lines)))
+         (min-indent (-min (--map (length it) indents))))
     (propertize
-     (refs--amap-lines string
-       (substring it min-indent))
+     (refs--map-lines
+      string
+      (lambda (line) (substring line min-indent)))
      'refs-unindented min-indent)))
 
 (defun refs--containing-lines (buffer start-pos end-pos)
