@@ -1,6 +1,9 @@
 (require 'ert)
 (require 'refs)
 
+;; TODO: searching for quoted forms, like `-map-first', is showing
+;; incorrect forms highlighted
+
 ;; For some reason, travis CI is recursing more deeply, meaning we hit
 ;; recursion limits that I can't reproduce locally
 (when (getenv "TRAVIS")
