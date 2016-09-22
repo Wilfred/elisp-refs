@@ -210,10 +210,6 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 ;; macro.
 (defalias 'refs--special-p 'refs--macro-p)
 
-(defun refs--symbol-p (symbol form path)
-  "Return t if FORM contains references to SYMBOL."
-  (--any (eq it symbol) form))
-
 ;; TODO: benchmark building a list with `push' rather than using
 ;; mapcat.
 (defun refs--read-and-find (buffer symbol match-p)
