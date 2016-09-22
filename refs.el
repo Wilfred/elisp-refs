@@ -318,8 +318,8 @@ don't want to create lots of temporary buffers.")
 
 (defun refs--replace-tabs (string)
   "Replace tabs in STRING with spaces."
-  ;; This is important for unindenting, as may unindent by less than
-  ;; one whole tab.
+  ;; This is important for unindenting, as we may unindent by less
+  ;; than one whole tab.
   (s-replace "\t" (s-repeat tab-width " ") string))
 
 (defun refs--lines (string)
