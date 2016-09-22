@@ -556,17 +556,34 @@ MATCH-FN should return a list where each element takes the form:
 (defun refs-visit-match ()
   "Go to the search result at point."
   (interactive)
-  (let ((path (get-text-property (point) 'refs-path))
-        (pos (get-text-property (point) 'refs-start-pos))
-        (match-column (current-column)))
+  (let* ((path (get-text-property (point) 'refs-path))
+         (pos (get-text-property (point) 'refs-start-pos))
+         (unindent (get-text-property (point) 'refs-unindented))
+         (column-offset (current-column))
+         (target-offset (+ column-offset unindent))
+         (line-offset -1))
     (when (null path)
       (user-error "No match here"))
+
+    ;; If point is not on the first line of the match, work out how
+    ;; far away the first line is.
+    (save-excursion
+      (while (equal pos (get-text-property (point) 'refs-start-pos))
+        (forward-line -1)
+        (cl-incf line-offset)))
 
     (find-file path)
     (goto-char pos)
     ;; Move point so we're on the same char in the buffer that we were
     ;; on in the results buffer.
-    (forward-char match-column)))
+    (forward-line line-offset)
+    (beginning-of-line)
+    (let ((i 0))
+      (while (< i target-offset)
+        (if (looking-at "\t")
+            (cl-incf i tab-width)
+          (cl-incf i))
+        (forward-char 1)))))
 
 (define-key refs-mode-map (kbd "q") #'kill-this-buffer)
 (define-key refs-mode-map (kbd "RET") #'refs-visit-match)
