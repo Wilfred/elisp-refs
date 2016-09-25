@@ -221,6 +221,20 @@ START-POS and END-POS should be the position of FORM within BUFFER."
   (cond
    ((consp form)
     nil)
+   ;; (let (SYMBOL ...) ...) is a variable, not a function call.
+   ((or
+     (equal (cl-second path) '(let . 1))
+     (equal (cl-second path) '(let* . 1)))
+    t)
+   ;; (let ((SYMBOL ...)) ...) is also a variable.
+   ((or
+     (equal (cl-third path) '(let . 1))
+     (equal (cl-third path) '(let* . 1)))
+    t)
+   ;; Ignore (SYMBOL ...) otherwise, we assume it's a function/macro
+   ;; call.
+   ((equal (car path) (cons symbol 0))
+    nil)
    ((eq form symbol)
     t)))
 
@@ -541,14 +555,16 @@ MATCH-FN should return a list where each element takes the form:
 (defun refs-variable (symbol)
   "Display all the references to SYMBOL, a variable."
   (interactive
-   (list (read (completing-read
-                "Variable: "
-                (refs--filter-obarray
-                 ;; TODO: is there a built-in predicate function for
-                 ;; this?
-                 (lambda (sym)
-                   (and (not (special-form-p sym))
-                        (not (functionp sym)))))))))
+   (list (read
+          (completing-read
+           "Variable: "
+           (refs--filter-obarray
+            ;; This is awkward. We don't want to just offer defvar
+            ;; variables, because then we can't such for users who
+            ;; have used `let' to bind other symbols. There doesn't
+            ;; seem to be good way to only offer variables that have
+            ;; been bound at some point.
+            (lambda (_) t))))))
   (refs--search symbol
                 (format "variable %s"
                         (propertize

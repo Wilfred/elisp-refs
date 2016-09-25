@@ -209,6 +209,63 @@ into separate region. Regression test for a very subtle bug."
        matches
        (list '(foo 2 5) '(foo 6 9)))))))
 
+(ert-deftest refs--find-var-basic ()
+  "Test the base case of finding variables"
+  (with-temp-backed-buffer
+   "foo"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should
+      (equal
+       matches
+       (list '(foo 1 4)))))))
+
+(ert-deftest refs--find-var-ignores-calls ()
+  "Function calls are not variable references."
+  (with-temp-backed-buffer
+   "(baz (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should (null matches)))))
+
+(ert-deftest refs--find-var-let-without-assignments ()
+  "We should recognise let variables as variable references."
+  (with-temp-backed-buffer
+   "(let (foo)) (let* (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should
+      (equal
+       matches
+       (list '(foo 7 10) '(foo 20 23)))))))
+
+(ert-deftest refs--find-var-let-with-assignments ()
+  "We should recognise let variables as variable references."
+  (with-temp-backed-buffer
+   "(let ((foo 1))) (let* ((foo 2)))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should
+      (equal
+       matches
+       (list '(foo 8 11) '(foo 25 28)))))))
+
+(ert-deftest refs--find-var-let-body ()
+  "We should recognise let variables as variable references."
+  (with-temp-backed-buffer
+   "(let ((x (1+ foo))) (+ x foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should
+      (equal
+       (length matches)
+       2)))))
+
 (ert-deftest refs--unindent-rigidly ()
   "Ensure we unindent by the right amount."
   ;; Take the smallest amount of indentation, (2 in this case), and
