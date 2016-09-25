@@ -626,23 +626,31 @@ MATCH-FN should return a list where each element takes the form:
 (defun refs-next-match ()
   "Move to the next search result in the Refs buffer."
   (interactive)
-  (let ((match-pos (get-text-property (point) 'refs-start-pos))
-        current-match-pos)
-    ;; Move forward until point is on the line of the next match.
-    (loop-while t
-      (setq current-match-pos
-            (get-text-property (point) 'refs-start-pos))
-      (when (and current-match-pos
-                 (not (equal match-pos current-match-pos)))
-        (loop-break))
-      (forward-char 1))
-    ;; Move forward until we're on the first char of match within that
-    ;; line.
-    (while (or
-            (looking-at " ")
-            (eq (get-text-property (point) 'face)
-                'font-lock-comment-face))
-      (forward-char 1))))
+  (let* ((start-pos (point))
+         (match-pos (get-text-property start-pos 'refs-start-pos))
+         current-match-pos)
+    (condition-case err
+        (progn
+          ;; Move forward until point is on the line of the next match.
+          (loop-while t
+            (setq current-match-pos
+                  (get-text-property (point) 'refs-start-pos))
+            (when (and current-match-pos
+                       (not (equal match-pos current-match-pos)))
+              (loop-break))
+            (forward-char 1))
+          ;; Move forward until we're on the first char of match within that
+          ;; line.
+          (while (or
+                  (looking-at " ")
+                  (eq (get-text-property (point) 'face)
+                      'font-lock-comment-face))
+            (forward-char 1)))
+      ;; If we're at the last result, don't move point.
+      (end-of-buffer
+       (progn
+         (goto-char start-pos)
+         (signal 'end-of-buffer nil))))))
 
 (define-key refs-mode-map (kbd "n") #'refs-next-match)
 (define-key refs-mode-map (kbd "q") #'kill-this-buffer)
