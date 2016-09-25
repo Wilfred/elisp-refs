@@ -529,7 +529,6 @@ MATCH-FN should return a list where each element takes the form:
    (list (read (completing-read
                 "Macro: "
                 (refs--filter-obarray #'macrop)))))
-  ;; TODO: can we avoid passing SYMBOL in multiple places?
   (refs--search symbol
                 (format "macro %s"
                         (propertize
