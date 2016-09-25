@@ -157,6 +157,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 (defun refs--function-p (symbol form path)
   "Return t if FORM looks like a function call to SYMBOL."
   (cond
+   ((not (consp form))
+    nil)
    ;; Ignore (defun _ (SYMBOL ...) ...)
    ((or (equal (car path) '(defun . 2))
         (equal (car path) '(defsubst . 2))
@@ -188,6 +190,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 (defun refs--macro-p (symbol form path)
   "Return t if FORM looks like a macro call to SYMBOL."
   (cond
+   ((not (consp form))
+    nil)
    ;; Ignore (defun _ (SYMBOL ...) ...)
    ((or (equal (car path) '(defun . 2))
         (equal (car path) '(defsubst . 2))
@@ -211,6 +215,14 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 ;; Looking for a special form is exactly the same as looking for a
 ;; macro.
 (defalias 'refs--special-p 'refs--macro-p)
+
+(defun refs--variable-p (symbol form path)
+  "Return t if this looks like a variable reference to SYMBOL."
+  (cond
+   ((consp form)
+    nil)
+   ((eq form symbol)
+    t)))
 
 ;; TODO: benchmark building a list with `push' rather than using
 ;; mapcat.
@@ -543,7 +555,7 @@ MATCH-FN should return a list where each element takes the form:
                          (symbol-name symbol)
                          'face 'font-lock-variable-name-face))
                 (lambda (buf)
-                  (refs--read-and-find buf symbol #'refs--macro-p))))
+                  (refs--read-and-find buf symbol #'refs--variable-p))))
 
 (defun refs-symbol (symbol)
   "Display all the references to SYMBOL."
