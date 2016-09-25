@@ -139,13 +139,15 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       (--each (-zip form subforms-positions)
         (-let [(subform subform-start subform-end) it]
           ;; TODO: add tests for improper lists
-          (when (and (consp subform) (not (list-utils-improper-p subform)))
+          (when (or
+                 (and (consp subform) (not (list-utils-improper-p subform)))
+                 (and (symbolp subform) (eq subform symbol)))
             (-when-let (subform-matches
                         (refs--walk
                          buffer subform
                          subform-start subform-end
                          symbol match-p
-                         (cons (cons (car form) it-index) path)))
+                         (cons (cons (car-safe form) it-index) path)))
               (push subform-matches matches)))))
 
       ;; Concat the results from all the subforms.
@@ -409,6 +411,14 @@ propertize them."
      'path path)
     (buffer-string)))
 
+(defun refs--format-count (symbol ref-count file-count)
+  (format "Found %s references to %s%s."
+          (refs--format-int ref-count)
+          symbol
+          (if (zerop ref-count) ""
+            (format " in %s files"
+                    (refs--format-int file-count)))))
+
 (defun refs--show-results (symbol description results)
   "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
@@ -416,11 +426,12 @@ render a friendly results buffer."
     (switch-to-buffer buf)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (insert (format "Found %s references to %s in %s files.\n\n"
-                    (refs--format-int
-                     (-sum (--map (length (car it)) results)))
-                    description
-                    (refs--format-int (length results))))
+    (insert
+     (refs--format-count
+      description
+      (-sum (--map (length (car it)) results))
+      (length results))
+     "\n\n")
     (--each results
       (-let* (((forms . buf) it)
               (path (with-current-buffer buf refs--path)))
