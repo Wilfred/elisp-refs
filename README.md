@@ -1,5 +1,6 @@
 # refs.el
 [![Build Status](https://travis-ci.org/Wilfred/refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/refs.el)
+[![Coverage Status](https://coveralls.io/repos/github/Wilfred/refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/refs.el?branch=master)
 
 An Emacs package for finding references to elisp functions, macros or
 variables.

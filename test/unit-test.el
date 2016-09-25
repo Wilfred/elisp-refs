@@ -4,10 +4,11 @@
 ;; TODO: searching for quoted forms, like `-map-first', is showing
 ;; incorrect forms highlighted
 
-;; For some reason, travis CI is recursing more deeply, meaning we hit
-;; recursion limits that I can't reproduce locally
+;; For Travis CI is recursing more deeply, meaning we hit recursion
+;; limits. I suspect this is due to undercover collecting coverage
+;; metrics.
 (when (getenv "TRAVIS")
-  (message "max-specpdl-size: %s max-lisp-eval-depth: %s "
+  (message "Updating recursion limits from: max-specpdl-size: %s max-lisp-eval-depth: %s "
            max-specpdl-size
            max-lisp-eval-depth)
   (setq max-specpdl-size 2500)
