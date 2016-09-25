@@ -17,6 +17,7 @@
                 gc-time
                 gc-runs))))
 
+;; TODO: benchmark refs-variable (and add a smoke test)
 ;; TODO: make this more representative by loading more elisp files
 ;; before searching. Running this in a GUI is also conspicuously
 ;; slower, which bench.sh doesn't reflect.
