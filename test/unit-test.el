@@ -65,6 +65,16 @@ into separate region. Regression test for a very subtle bug."
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
+(ert-deftest refs--find-macros-improper-list ()
+  "We shouldn't crash if the source code contains improper lists."
+  (with-temp-backed-buffer
+   "(destructuring-bind (start . end) region\n  (when foo\n    (bar)))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'when
+                                      #'refs--macro-p)))
+     (should
+      (equal calls (list (list '(when foo (bar)) 44 64)))))))
+
 (ert-deftest refs--find-calls-nested ()
   "Find nested function calls."
   (with-temp-backed-buffer
