@@ -454,12 +454,14 @@ render a friendly results buffer."
     (switch-to-buffer buf)
     (setq buffer-read-only nil)
     (erase-buffer)
+    ;; Insert the header.
     (insert
      (refs--format-count
       description
       (-sum (--map (length (car it)) results))
       (length results))
      "\n\n")
+    ;; Insert the results.
     (--each results
       (-let* (((forms . buf) it)
               (path (with-current-buffer buf refs--path)))
@@ -470,9 +472,12 @@ render a friendly results buffer."
           (-let [(_ start-pos end-pos) it]
             (insert (format "%s\n" (refs--containing-lines buf start-pos end-pos)))))
         (insert "\n")))
+    ;; Prepare the buffer for the user.
     (goto-char (point-min))
     (refs-mode)
-    (setq buffer-read-only t)))
+    (setq buffer-read-only t)
+    ;; Cleanup buffers created when highlighting results.
+    (kill-buffer refs--highlighting-buffer)))
 
 (defun refs--search (symbol description match-fn)
   "Search for references to SYMBOL in all loaded files, by calling MATCH-FN on each buffer.
