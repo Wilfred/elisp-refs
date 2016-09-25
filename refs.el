@@ -509,9 +509,9 @@ MATCH-FN should return a list where each element takes the form:
               ;; Give feedback to the user on our progress, because
               ;; searching takes several seconds.
               (when (zerop (mod searched 10))
-                (message "Searched %s/%s files" searched total-paths))
+                (message "Searched %s/%s files on load-path" searched total-paths))
               (cl-incf searched)))
-          (message "Searched %s/%s files" total-paths total-paths)
+          (message "Searched %s/%s files on load-path" total-paths total-paths)
           (refs--show-results symbol description forms-and-bufs))
       ;; Clean up temporary buffers.
       (--each loaded-src-bufs (kill-buffer it)))))
