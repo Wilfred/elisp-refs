@@ -108,7 +108,7 @@ into separate region. Regression test for a very subtle bug."
 (ert-deftest refs--find-calls-params ()
   "Function or macro parameters should not be considered function calls."
   (with-temp-backed-buffer
-   "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo))"
+   "(defun bar (foo)) (defsubst bar (foo)) (defmacro bar (foo)) (cl-defun bar (foo))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (calls (refs--read-and-find refs-buf 'foo
                                       #'refs--function-p)))

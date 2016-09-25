@@ -152,7 +152,6 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches)))))
 
-;; TODO cl-defun
 ;; TODO: unwind-protect
 ;; TODO: Handle sharp-quoted function references.
 (defun refs--function-p (symbol form path)
@@ -163,7 +162,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
    ;; Ignore (defun _ (SYMBOL ...) ...)
    ((or (equal (car path) '(defun . 2))
         (equal (car path) '(defsubst . 2))
-        (equal (car path) '(defmacro . 2)))
+        (equal (car path) '(defmacro . 2))
+        (equal (car path) '(cl-defun . 2)))
     nil)
    ;; Ignore (let (SYMBOL ...) ...)
    ;; and (let* (SYMBOL ...) ...)
