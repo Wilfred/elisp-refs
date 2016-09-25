@@ -623,19 +623,25 @@ MATCH-FN should return a list where each element takes the form:
         (forward-char 1)))))
 
 ;; TODO: it would be nice for TAB to navigate to buffers too.
-;; TODO: should this put point on the first actual character of the match?
 (defun refs-next-match ()
   "Move to the next search result in the Refs buffer."
   (interactive)
   (let ((match-pos (get-text-property (point) 'refs-start-pos))
         current-match-pos)
-    ;; Move forward until point is on the next match.
+    ;; Move forward until point is on the line of the next match.
     (loop-while t
       (setq current-match-pos
             (get-text-property (point) 'refs-start-pos))
       (when (and current-match-pos
                  (not (equal match-pos current-match-pos)))
         (loop-break))
+      (forward-char 1))
+    ;; Move forward until we're on the first char of match within that
+    ;; line.
+    (while (or
+            (looking-at " ")
+            (eq (get-text-property (point) 'face)
+                'font-lock-comment-face))
       (forward-char 1))))
 
 (define-key refs-mode-map (kbd "n") #'refs-next-match)
