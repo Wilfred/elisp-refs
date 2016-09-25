@@ -7,20 +7,41 @@ variables.
 This is particularly useful for finding all the places a function is
 used, or finding examples of usage.
 
-## What about Etags?
+TODO: screenshots
 
-Etags is a program shipped with Emacs that can be used for indexing
-code to find definitions. To my knowledge, it cannot find references.
+## Running tests
 
-[universal-ctags](https://github.com/universal-ctags/ctags) (formerly
+You can run the tests with:
+
+```
+$ cask install
+$ cask exec ert-runner
+```
+
+## Performance
+
+refs.el is CPU-intensive elisp and has been carefully optimised. You
+can run the benchmark script with:
+
+```
+$ cask install
+$ ./bench.sh
+```
+
+New features are carefully measured to ensure performance does not get
+worse.
+
+## Alternative Projects
+
+**TAGS**: It is possible to record function references in TAGS
+files. Whilst [universal-ctags](https://github.com/universal-ctags/ctags) (formerly
 known as exuberant-ctags) does provide the ability to find references,
-however.
+it is not supported in its lisp parser.
 
-Unlike these projects, refs.el considers code loaded in the current
-Emacs instance and requires no manual configuration. It's also smarter
-about detecting function calls (e.g. we can spot `funcall`
-references).
+etags, the TAGS implementation shipped with Emacs, cannot find
+references (to my knowledge).
 
-## Similar Projects
-
-[el-search](https://elpa.gnu.org/packages/el-search.html)
+**el-search**:
+[el-search](https://elpa.gnu.org/packages/el-search.html) allows you
+to search for arbitrary forms in elisp files. It's slower, but a much
+more general tool. Its design greatly influenced refs.el.
