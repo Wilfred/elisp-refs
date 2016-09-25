@@ -327,7 +327,8 @@ don't want to create lots of temporary buffers.")
 (defun refs--syntax-highlight (str)
   "Apply font-lock properties to a string STR of Emacs lisp code."
   ;; Ensure we have a highlighting buffer to work with.
-  (unless refs--highlighting-buffer
+  (unless (and refs--highlighting-buffer
+               (buffer-live-p refs--highlighting-buffer))
     (setq refs--highlighting-buffer
           (generate-new-buffer " *refs-highlighting*"))
     (with-current-buffer refs--highlighting-buffer
