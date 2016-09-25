@@ -628,23 +628,26 @@ MATCH-FN should return a list where each element takes the form:
           (cl-incf i))
         (forward-char 1)))))
 
-;; TODO: it would be nice for TAB to navigate to buffers too.
-(defun refs-next-match ()
-  "Move to the next search result in the Refs buffer."
-  (interactive)
+(defun refs--move-to-match (direction)
+  "Move point one match forwards.
+If DIRECTION is -1, moves backwards instead."
   (let* ((start-pos (point))
          (match-pos (get-text-property start-pos 'refs-start-pos))
          current-match-pos)
     (condition-case err
         (progn
-          ;; Move forward until point is on the line of the next match.
+          ;; Move forward/backwards until we're on the next/previous match.
           (loop-while t
             (setq current-match-pos
                   (get-text-property (point) 'refs-start-pos))
             (when (and current-match-pos
                        (not (equal match-pos current-match-pos)))
               (loop-break))
-            (forward-char 1))
+            (forward-char direction))
+          ;; Move to the beginning of that match.
+          (while (equal (get-text-property (point) 'refs-start-pos)
+                        (get-text-property (1- (point)) 'refs-start-pos))
+            (forward-char -1))
           ;; Move forward until we're on the first char of match within that
           ;; line.
           (while (or
@@ -658,7 +661,22 @@ MATCH-FN should return a list where each element takes the form:
          (goto-char start-pos)
          (signal 'end-of-buffer nil))))))
 
+(defun refs-prev-match ()
+  "Move to the next search result in the Refs buffer."
+  (interactive)
+  (refs--move-to-match -1))
+
+(defun refs-next-match ()
+  "Move to the next search result in the Refs buffer."
+  (interactive)
+  (refs--move-to-match 1))
+
+;; TODO: it would be nice for TAB to navigate to file buttons too,
+;; like *Help* does.
+(define-key refs-mode-map (kbd "<tab>") #'refs-next-match)
+(define-key refs-mode-map (kbd "<backtab>") #'refs-prev-match)
 (define-key refs-mode-map (kbd "n") #'refs-next-match)
+(define-key refs-mode-map (kbd "p") #'refs-prev-match)
 (define-key refs-mode-map (kbd "q") #'kill-this-buffer)
 (define-key refs-mode-map (kbd "RET") #'refs-visit-match)
 
