@@ -153,6 +153,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches)))))
 
+;; TODO cl-defun
+;; TODO: unwind-protect
 ;; TODO: Handle sharp-quoted function references.
 (defun refs--function-p (symbol form path)
   "Return t if FORM looks like a function call to SYMBOL."
