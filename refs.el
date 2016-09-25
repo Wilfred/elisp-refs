@@ -445,6 +445,8 @@ propertize them."
             (format " in %s files"
                     (refs--format-int file-count)))))
 
+;; TODO: if we have multiple matches on one line, we repeatedly show
+;; that line. That's slighly confusing.
 (defun refs--show-results (symbol description results)
   "Given a list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
