@@ -36,7 +36,7 @@ refs.el understands the following forms:
 ## Limitations
 
 refs.el understands elisp special forms, and a few common
-macros. However, it cannot understand arbitrary macros.
+macros. However, it **cannot understand arbitrary macros**.
 
 Therefore refs.el will assume that `(other-macro (foo bar))` is a
 function call to `foo`. If this is incorrect, you may wish to use the
@@ -44,6 +44,21 @@ command `refs-symbol` to find all references to the `foo` symbol.
 
 If `other-macro` is a common macro, please consider submitting a patch
 to `refs--function-p` to make refs.el smarter.
+
+refs.el also **does not support** indirect calls.
+
+``` emacs-lisp
+;; Since we do a simple syntax walk, this isn't treated as a
+;; call to foo.
+(let ((x (symbol-function 'foo)))
+  (funcall x))
+
+;; Similarly, pasing functions as arguments will not be treated
+;; as function calls either.
+(defun call-func (x)
+  (funcall x))
+(call-func 'foo)
+```
 
 ## Running tests
 
