@@ -441,12 +441,19 @@ propertize them."
     (buffer-string)))
 
 (defun refs--format-count (symbol ref-count file-count)
-  (format "Found %s references to %s%s."
-          (refs--format-int ref-count)
-          symbol
-          (if (zerop ref-count) ""
-            (format " in %s files"
-                    (refs--format-int file-count)))))
+  (let ((ref-count-str
+         (if (equal ref-count 1)
+             "1 reference"
+           (format "%s references" (refs--format-int ref-count))))
+        (file-count-str
+         (cond
+          ((zerop file-count)
+           "")
+          ((equal file-count 1)
+           " in 1 file")
+          (t
+           (format " in %s files" (refs--format-int file-count))))))
+    (format "Found %s to %s%s." ref-count-str symbol file-count-str)))
 
 ;; TODO: if we have multiple matches on one line, we repeatedly show
 ;; that line. That's slighly confusing.
