@@ -10,6 +10,20 @@ used, or finding examples of usage.
 
 TODO: screenshots
 
+## Limitations
+
+refs.el understands elisp special forms (such as `defun` and `let`),
+and a few common macros. However, it cannot understand arbitrary
+macros.
+
+Therefore refs.el will assume that `(other-macro (foo bar))` is a
+function call to `foo`, even if it's just a variable reference. If
+this is incorrect, you may wish to use the command `refs-symbol` to
+find all references to the `foo` symbol.
+
+If `other-macro` is a common macro, please consider submitting a patch
+to `refs--function-p` to make refs.el smarter.
+
 ## Running tests
 
 You can run the tests with:
