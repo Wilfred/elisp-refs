@@ -46,6 +46,10 @@ $ ./bench.sh
 New features are carefully measured to ensure performance does not get
 worse.
 
+## Changelog
+
+v1.0: Initial release.
+
 ## Alternative Projects
 
 **TAGS**: It is possible to record function references in TAGS
