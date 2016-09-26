@@ -2,13 +2,36 @@
 [![Build Status](https://travis-ci.org/Wilfred/refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/refs.el)
 [![Coverage Status](https://coveralls.io/repos/github/Wilfred/refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/refs.el?branch=master)
 
-An Emacs package for finding references to elisp functions, macros or
-variables.
+refs.el is an Emacs package for finding references to functions,
+macros or variables. Unlike a dumb text search, refs.el actually
+parses elisp, so it's never confused by comments or `foo-bar` matching
+`foo`.
+
+![screenshot](refs_screenshot.png)
 
 This is particularly useful for finding all the places a function is
 used, or finding examples of usage.
 
-TODO: screenshots
+## Commands available
+
+* `refs-function` (find function calls)
+* `refs-macro` (find macro calls)
+* `refs-variable` (find variable references)
+* `refs-special` (find special form calls)
+* `refs-symbol` (find all references to a symbol)
+
+## Semantic analysis
+
+refs.el has *street smarts*: given `(defun foo (bar) (baz))`, it
+understands that `bar` is a variable and `baz` is a function.
+
+refs.el understands the following forms:
+
+* `defun` `defsubst` `defmacro` `cl-defun`
+* `lambda`
+* `let` `let*`
+* `funcall` `apply`
+* sharp quoted expressions
 
 ## Limitations
 
@@ -45,6 +68,8 @@ $ ./bench.sh
 
 New features are carefully measured to ensure performance does not get
 worse.
+
+See refs-bench.el for more details.
 
 ## Changelog
 
