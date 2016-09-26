@@ -554,6 +554,7 @@ MATCH-FN should return a list where each element takes the form:
       ;; Clean up temporary buffers.
       (--each loaded-src-bufs (kill-buffer it)))))
 
+;;;###autoload
 (defun refs-function (symbol)
   "Display all the references to function SYMBOL, in all loaded
 elisp files."
@@ -570,6 +571,7 @@ elisp files."
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--function-p))))
 
+;;;###autoload
 (defun refs-macro (symbol)
   "Display all the references to macro SYMBOL, in all loaded
 elisp files."
@@ -585,6 +587,7 @@ elisp files."
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--macro-p))))
 
+;;;###autoload
 (defun refs-special (symbol)
   "Display all the references to special form SYMBOL, in all loaded
 elisp files."
@@ -600,6 +603,7 @@ elisp files."
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--special-p))))
 
+;;;###autoload
 (defun refs-variable (symbol)
   "Display all the references to variable SYMBOL, in all loaded
 elisp files."
@@ -622,6 +626,7 @@ elisp files."
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--variable-p))))
 
+;;;###autoload
 (defun refs-symbol (symbol)
   "Display all the references to SYMBOL in all loaded elisp files."
   (interactive
