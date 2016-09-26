@@ -54,27 +54,30 @@ in the current buffer."
 
 (defun refs--sexp-positions (buffer start-pos end-pos)
   "Return a list of start and end positions of all the sexps
-between START-POS and END-POS (excluding ends) in BUFFER.
+between START-POS and END-POS (inclusive) in BUFFER.
+
+Positions exclude quote characters, so given 'foo or `foo, we
+report the position of the f.
 
 Not recursive, so we don't consider subelements of nested sexps."
-  (let ((positions nil)
-        (current-pos (1+ start-pos)))
+  (let ((positions nil))
     (with-current-buffer buffer
       (condition-case _err
           ;; Loop until we can't read any more.
           (loop-while t
             (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
-                                   (scan-sexps current-pos 1)))
-                   (sexp-start-pos (refs--start-pos sexp-end-pos)))
-              (if (< sexp-end-pos end-pos)
-                  ;; This sexp is inside the range requested.
-                  (progn
-                    (push (list sexp-start-pos sexp-end-pos) positions)
-                    (setq current-pos sexp-end-pos))
-                ;; Otherwise, we've reached end the of range.
-                (loop-break))))
+                                   (scan-sexps start-pos 1))))
+              ;; If we've reached a sexp beyond the range requested,
+              ;; or if there are no sexps left, we're done.
+              (when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
+                (loop-break))
+              ;; Otherwise, this sexp is in the range requested.
+              (push (list (refs--start-pos sexp-end-pos) sexp-end-pos)
+                    positions)
+              (setq start-pos sexp-end-pos)))
         ;; Terminate when we see "Containing expression ends prematurely"
-        (scan-error (nreverse positions))))))
+        (scan-error nil)))
+    (nreverse positions)))
 
 (defun refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
@@ -128,14 +131,24 @@ For example if we are looking at h in (e f (g h)), PATH takes the
 value ((g . 1) (e . 2)).
 
 START-POS and END-POS should be the position of FORM within BUFFER."
-  (if (funcall match-p symbol form path)
-      ;; If this form matches, just return it, along with the position.
-      (list (list form start-pos end-pos))
-    ;; Otherwise, recurse on the subforms.
+  (cond
+   ((funcall match-p symbol form path)
+    ;; If this form matches, just return it, along with the position.
+    (list (list form start-pos end-pos)))
+   ;; Otherwise, recurse on the subforms.
+   ((consp form)
     (let ((matches nil)
           ;; Find the positions of the subforms.
-          (subforms-positions (refs--sexp-positions buffer start-pos end-pos)))
-      ;; For each subform, if it's a list, recurse.
+          (subforms-positions
+           (if (eq (car-safe form) '\`)
+               ;; Kludge: `refs--sexp-positions' excludes the ` when
+               ;; calculating positions. So, to find the inner
+               ;; positions when walking from `(...) to (...), we
+               ;; don't need to increment the start posion.
+               (cons nil (refs--sexp-positions buffer start-pos end-pos))
+             ;; Calculate the positions after the opening paren.
+             (refs--sexp-positions buffer (1+ start-pos) end-pos))))
+      ;; For each subform, recurse if it's a list, or a matching symbol.
       (--each (-zip form subforms-positions)
         (-let [(subform subform-start subform-end) it]
           (when (or
@@ -150,7 +163,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
               (push subform-matches matches)))))
 
       ;; Concat the results from all the subforms.
-      (apply #'append (nreverse matches)))))
+      (apply #'append (nreverse matches))))))
 
 ;; TODO: condition-case (condition-case ... (error ...)) is not a call
 ;; TODO: (cl-destructuring-bind (foo &rest bar) ...) is not a call

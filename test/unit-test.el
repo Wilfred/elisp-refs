@@ -44,6 +44,17 @@ into separate region. Regression test for a very subtle bug."
     (refs--unindent-rigidly s)))
 
 (ert-deftest refs--sexp-positions ()
+  "Ensure we calculate positions correctly when we're considering
+the whole buffer."
+  (with-temp-backed-buffer
+   "(while list (setq len 1))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (sexp-positions
+           (refs--sexp-positions refs-buf (point-min) (point-max))))
+     (should
+      (equal sexp-positions (list '(1 26)))))))
+
+(ert-deftest refs--sexp-positions-comments ()
   "Ensure we handle comments correctly when calculating sexp positions."
   (with-temp-backed-buffer
    "(while list
@@ -51,7 +62,7 @@ into separate region. Regression test for a very subtle bug."
   (setq len 1))"
    (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
           (sexp-positions
-           (refs--sexp-positions refs-buf (point-min) (point-max))))
+           (refs--sexp-positions refs-buf (1+ (point-min)) (1- (point-max)))))
      ;; The position of the setq should take into account the comment.
      (should
       (equal (nth 2 sexp-positions) '(42 54))))))
@@ -65,6 +76,19 @@ into separate region. Regression test for a very subtle bug."
                                       #'refs--function-p)))
      (should
       (equal calls (list (list '(foo) 1 6)))))))
+
+(ert-deftest refs--find-calls-in-backquote ()
+  "Find function calls in backquotes.
+Useful for finding references in macros, but this is primarily a
+regression test for bugs where we miscalculated position with
+backquote forms."
+  (with-temp-backed-buffer
+   "(baz `(biz (foo 1)))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      #'refs--function-p)))
+     (should
+      (equal calls (list (list '(foo 1) 12 19)))))))
 
 (ert-deftest refs--find-macros-improper-list ()
   "We shouldn't crash if the source code contains improper lists."
