@@ -165,9 +165,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches))))))
 
+;; TODO: (lambda (x) ...) is not a call.
 ;; TODO: condition-case (condition-case ... (error ...)) is not a call
 ;; TODO: (cl-destructuring-bind (foo &rest bar) ...) is not a call
-;; TODO: Handle sharp-quoted function references.
 (defun refs--function-p (symbol form path)
   "Return t if FORM looks like a function call to SYMBOL."
   (cond
@@ -192,6 +192,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
     nil)
    ;; (SYMBOL ...)
    ((eq (car form) symbol)
+    t)
+   ;; #'SYMBOL
+   ((equal form (list 'function symbol))
     t)
    ;; (funcall 'SYMBOL ...)
    ((and (eq (car form) 'funcall)

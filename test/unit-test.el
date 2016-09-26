@@ -77,6 +77,16 @@ the whole buffer."
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
+(ert-deftest refs--find-calls-sharp-quote ()
+  "Find function references using sharp quotes."
+  (with-temp-backed-buffer
+   "(bar #'foo)"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      #'refs--function-p)))
+     (should
+      (equal calls (list (list '(function foo) 6 11)))))))
+
 (ert-deftest refs--find-calls-in-backquote ()
   "Find function calls in backquotes.
 Useful for finding references in macros, but this is primarily a
