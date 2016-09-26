@@ -1,9 +1,6 @@
 (require 'ert)
 (require 'refs)
 
-;; TODO: searching for quoted forms, like `-map-first', is showing
-;; incorrect forms highlighted
-
 ;; For Travis CI is recursing more deeply, meaning we hit recursion
 ;; limits. I suspect this is due to undercover collecting coverage
 ;; metrics.
