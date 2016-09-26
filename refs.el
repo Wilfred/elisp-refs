@@ -550,7 +550,8 @@ MATCH-FN should return a list where each element takes the form:
       (--each loaded-src-bufs (kill-buffer it)))))
 
 (defun refs-function (symbol)
-  "Display all the references to SYMBOL, a function."
+  "Display all the references to function SYMBOL, in all loaded
+elisp files."
   (interactive
    ;; TODO: default to function at point.
    (list (read (completing-read
@@ -565,7 +566,8 @@ MATCH-FN should return a list where each element takes the form:
                   (refs--read-and-find buf symbol #'refs--function-p))))
 
 (defun refs-macro (symbol)
-  "Display all the references to SYMBOL, a macro."
+  "Display all the references to macro SYMBOL, in all loaded
+elisp files."
   (interactive
    (list (read (completing-read
                 "Macro: "
@@ -579,7 +581,8 @@ MATCH-FN should return a list where each element takes the form:
                   (refs--read-and-find buf symbol #'refs--macro-p))))
 
 (defun refs-special (symbol)
-  "Display all the references to SYMBOL, a special form."
+  "Display all the references to special form SYMBOL, in all loaded
+elisp files."
   (interactive
    (list (read (completing-read
                 "Macro: "
@@ -592,10 +595,9 @@ MATCH-FN should return a list where each element takes the form:
                 (lambda (buf)
                   (refs--read-and-find buf symbol #'refs--special-p))))
 
-;; TODO: these docstring are poor and don't say where we search.
-
 (defun refs-variable (symbol)
-  "Display all the references to SYMBOL, a variable."
+  "Display all the references to variable SYMBOL, in all loaded
+elisp files."
   (interactive
    (list (read
           (completing-read
@@ -616,7 +618,7 @@ MATCH-FN should return a list where each element takes the form:
                   (refs--read-and-find buf symbol #'refs--variable-p))))
 
 (defun refs-symbol (symbol)
-  "Display all the references to SYMBOL."
+  "Display all the references to SYMBOL in all loaded elisp files."
   (interactive
    (list (read (completing-read
                 "Symbol: "
@@ -628,7 +630,7 @@ MATCH-FN should return a list where each element takes the form:
                   (refs--read-and-find-symbol buf symbol))))
 
 (define-derived-mode refs-mode special-mode "Refs"
-  "Major mode for results buffers when using refs commands.")
+  "Major mode for refs results buffers.")
 
 (defun refs-visit-match ()
   "Go to the search result at point."
@@ -696,7 +698,7 @@ If DIRECTION is -1, moves backwards instead."
          (signal 'end-of-buffer nil))))))
 
 (defun refs-prev-match ()
-  "Move to the next search result in the Refs buffer."
+  "Move to the previous search result in the Refs buffer."
   (interactive)
   (refs--move-to-match -1))
 
