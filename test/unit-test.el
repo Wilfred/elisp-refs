@@ -87,6 +87,16 @@ the whole buffer."
      (should
       (equal calls (list (list '(function foo) 6 11)))))))
 
+(ert-deftest refs--find-calls-in-lambda ()
+  "Find function calls in lambda expressions."
+  (with-temp-backed-buffer
+   "(lambda (foo) (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      #'refs--function-p)))
+     (should
+      (equal calls (list (list '(foo) 15 20)))))))
+
 (ert-deftest refs--find-calls-in-backquote ()
   "Find function calls in backquotes.
 Useful for finding references in macros, but this is primarily a
@@ -197,6 +207,16 @@ backquote forms."
      (should
       (equal calls (list (list '(foo) 1 6)))))))
 
+(ert-deftest refs--find-macros-in-lambda ()
+  "Find macros calls in lambda expressions."
+  (with-temp-backed-buffer
+   "(lambda (foo) (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (calls (refs--read-and-find refs-buf 'foo
+                                      #'refs--macro-p)))
+     (should
+      (equal calls (list (list '(foo) 15 20)))))))
+
 (ert-deftest refs--find-macros-params ()
   "Find simple function calls."
   (with-temp-backed-buffer
@@ -265,6 +285,16 @@ backquote forms."
       (equal
        matches
        (list '(foo 1 4)))))))
+
+(ert-deftest refs--find-var-in-lambda ()
+  "Find variable references in lambda expressions."
+  (with-temp-backed-buffer
+   "(lambda (foo) (foo))"
+   (let* ((refs-buf (refs--contents-buffer (buffer-file-name)))
+          (matches (refs--read-and-find refs-buf 'foo
+                                        #'refs--variable-p)))
+     (should
+      (equal matches (list (list 'foo 10 13)))))))
 
 (ert-deftest refs--find-var-ignores-calls ()
   "Function calls are not variable references."

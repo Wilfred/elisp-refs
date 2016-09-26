@@ -165,7 +165,6 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       ;; Concat the results from all the subforms.
       (apply #'append (nreverse matches))))))
 
-;; TODO: (lambda (x) ...) is not a call.
 ;; TODO: condition-case (condition-case ... (error ...)) is not a call
 ;; TODO: (cl-destructuring-bind (foo &rest bar) ...) is not a call
 (defun refs--function-p (symbol form path)
@@ -178,6 +177,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
         (equal (car path) '(defsubst . 2))
         (equal (car path) '(defmacro . 2))
         (equal (car path) '(cl-defun . 2)))
+    nil)
+   ;; Ignore (lambda (SYMBOL ...) ...)
+   ((equal (car path) '(lambda . 1))
     nil)
    ;; Ignore (let (SYMBOL ...) ...)
    ;; and (let* (SYMBOL ...) ...)
@@ -215,6 +217,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
         (equal (car path) '(defsubst . 2))
         (equal (car path) '(defmacro . 2)))
     nil)
+   ;; Ignore (lambda (SYMBOL ...) ...)
+   ((equal (car path) '(lambda . 1))
+    nil)
    ;; Ignore (let (SYMBOL ...) ...)
    ;; and (let* (SYMBOL ...) ...)
    ((or
@@ -235,7 +240,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
 (defalias 'refs--special-p 'refs--macro-p)
 
 (defun refs--variable-p (symbol form path)
-  "Return t if this looks like a variable reference to SYMBOL."
+  "Return t if this looks like a variable reference to SYMBOL.
+We consider parameters to be variables too."
   (cond
    ((consp form)
     nil)
@@ -243,6 +249,9 @@ START-POS and END-POS should be the position of FORM within BUFFER."
    ((or
      (equal (cl-second path) '(let . 1))
      (equal (cl-second path) '(let* . 1)))
+    t)
+   ;; (lambda (SYMBOL ...) ...) is a variable
+   ((equal (cl-second path) '(lambda . 1))
     t)
    ;; (let ((SYMBOL ...)) ...) is also a variable.
    ((or
