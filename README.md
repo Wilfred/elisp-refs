@@ -12,6 +12,11 @@ parses elisp, so it's never confused by comments or `foo-bar` matching
 This is particularly useful for finding all the places a function is
 used, or finding examples of usage.
 
+## Installation
+
+Add refs.el to
+`load-path`. [MELPA coming soon](https://github.com/melpa/melpa/pull/4274).
+
 ## Commands available
 
 * `refs-function` (find function calls)
