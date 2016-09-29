@@ -511,7 +511,8 @@ render a friendly results buffer."
          (refs--path-button path) "\n")
         (--each forms
           (-let [(_ start-pos end-pos) it]
-            (insert (format "%s\n" (refs--containing-lines buf start-pos end-pos)))))
+            (insert (refs--containing-lines buf start-pos end-pos)
+                    "\n")))
         (insert "\n")))
     ;; Prepare the buffer for the user.
     (goto-char (point-min))
