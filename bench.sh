@@ -2,4 +2,4 @@
 
 set -ex
 
-cask eval "(progn (require 'refs-bench) (refs-bench))"
+cask eval "(progn (require 'elisp-refs-bench) (elisp-refs-bench))"

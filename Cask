@@ -1,6 +1,6 @@
 (source melpa)
 
-(package-file "refs.el")
+(package-file "elisp-refs.el")
 
 (development
  (depends-on "ert-runner")

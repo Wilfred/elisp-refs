@@ -9,11 +9,11 @@
 (require 'ert)
 (require 'f)
 
-(let ((refine-dir (f-parent (f-dirname (f-this-file)))))
-  (add-to-list 'load-path refine-dir))
+(let ((elisp-refs-dir (f-parent (f-dirname (f-this-file)))))
+  (add-to-list 'load-path elisp-refs-dir))
 
 (require 'undercover)
-(undercover "refs.el"
+(undercover "elisp-refs.el"
 	    (:exclude "*-test.el")
 	    (:report-file "/tmp/undercover-report.json"))
 

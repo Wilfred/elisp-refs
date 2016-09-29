@@ -1,12 +1,12 @@
-;;; refs-bench.el --- measure refs.el performance
+;;; elisp-refs-bench.el --- measure elisp-refs.el performance
 
 ;;; Code:
 
-(require 'refs)
+(require 'elisp-refs)
 (require 'dash)
 (require 'shut-up)
 
-(defmacro refs--print-time (form)
+(defmacro elisp-refs--print-time (form)
   "Evaluate FORM, and print the time taken."
   `(progn
      (message "Timing %s" ',form)
@@ -17,42 +17,42 @@
                 gc-time
                 gc-runs))))
 
-;; TODO: benchmark refs-variable (and add a smoke test)
+;; TODO: benchmark elisp-refs-variable (and add a smoke test)
 ;; TODO: make this more representative by loading more elisp files
 ;; before searching. Running this in a GUI is also conspicuously
 ;; slower, which bench.sh doesn't reflect.
-(defun refs-bench ()
+(defun elisp-refs-bench ()
   "Measure runtime of searching."
   (interactive)
-  (refs--report-loc)
+  (elisp-refs--report-loc)
   ;; Measure a fairly uncommon function.
-  (refs--print-time (refs-function 'mod))
+  (elisp-refs--print-time (elisp-refs-function 'mod))
   ;; Measure a common macro
-  (refs--print-time (refs-macro 'when))
+  (elisp-refs--print-time (elisp-refs-macro 'when))
   ;; Compare with searching for the same symbol without walking
-  (refs--print-time (refs-symbol 'when))
+  (elisp-refs--print-time (elisp-refs-symbol 'when))
   ;; Synthetic test of a large number of results.
   (message "Formatting 10,000 results")
   (let ((forms (-repeat 10000 (list '(ignored) 1 64)))
-        (buf (generate-new-buffer " *dummy-refs-buf*")))
+        (buf (generate-new-buffer " *dummy-elisp-refs-buf*")))
     (with-current-buffer buf
       (insert "(defun foo (bar) (if bar nil (with-current-buffer bar))) ;; blah")
-      (setq-local refs--path "/tmp/foo.el"))
-    (refs--print-time
-     (refs--show-results 'foo "foo bar" (list (cons forms buf))))
+      (setq-local elisp-refs--path "/tmp/foo.el"))
+    (elisp-refs--print-time
+     (elisp-refs--show-results 'foo "foo bar" (list (cons forms buf))))
     (kill-buffer buf)))
 
-(defun refs--report-loc ()
+(defun elisp-refs--report-loc ()
   "Report the total number of lines of code searched."
   (interactive)
-  (let* ((loaded-paths (refs--loaded-files))
-         (loaded-src-bufs (-map #'refs--contents-buffer loaded-paths))
+  (let* ((loaded-paths (elisp-refs--loaded-files))
+         (loaded-src-bufs (-map #'elisp-refs--contents-buffer loaded-paths))
          (total-lines (-sum (--map (with-current-buffer it
                                      (line-number-at-pos (point-max)))
                                    loaded-src-bufs))))
     ;; Clean up temporary buffers.
     (--each loaded-src-bufs (kill-buffer it))
-    (message "Total LOC: %s" (refs--format-int total-lines))))
+    (message "Total LOC: %s" (elisp-refs--format-int total-lines))))
 
-(provide 'refs-bench)
-;;; refs-bench.el ends here
+(provide 'elisp-refs-bench)
+;;; elisp-refs-bench.el ends here

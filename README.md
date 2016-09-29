@@ -1,11 +1,11 @@
-# refs.el
+# elisp-elisp-refs.el
 [![Build Status](https://travis-ci.org/Wilfred/refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/refs.el)
 [![Coverage Status](https://coveralls.io/repos/github/Wilfred/refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/refs.el?branch=master)
 
-refs.el is an Emacs package for finding references to functions,
-macros or variables. Unlike a dumb text search, refs.el actually
-parses elisp, so it's never confused by comments or `foo-bar` matching
-`foo`.
+elisp-refs.el is an Emacs package for finding references to
+functions, macros or variables. Unlike a dumb text search,
+elisp-refs.el actually parses the code, so it's never confused by
+comments or `foo-bar' matching `foo'.
 
 ![screenshot](refs_screenshot.png)
 
@@ -14,23 +14,23 @@ used, or finding examples of usage.
 
 ## Installation
 
-Add refs.el to
+Add elisp-refs.el to
 `load-path`. [MELPA coming soon](https://github.com/melpa/melpa/pull/4274).
 
 ## Commands available
 
-* `refs-function` (find function calls)
-* `refs-macro` (find macro calls)
-* `refs-variable` (find variable references)
-* `refs-special` (find special form calls)
-* `refs-symbol` (find all references to a symbol)
+* `elisp-refs-function` (find function calls)
+* `elisp-refs-macro` (find macro calls)
+* `elisp-refs-variable` (find variable references)
+* `elisp-refs-special` (find special form calls)
+* `elisp-refs-symbol` (find all references to a symbol)
 
 ## Semantic analysis
 
-refs.el has *street smarts*: given `(defun foo (bar) (baz))`, it
+elisp-refs.el has *street smarts*: given `(defun foo (bar) (baz))`, it
 understands that `bar` is a variable and `baz` is a function.
 
-refs.el understands the following forms:
+elisp-refs.el understands the following forms:
 
 * `defun` `defsubst` `defmacro` `cl-defun`
 * `lambda`
@@ -40,17 +40,17 @@ refs.el understands the following forms:
 
 ## Limitations
 
-refs.el understands elisp special forms, and a few common
+elisp-refs.el understands elisp special forms, and a few common
 macros. However, it **cannot understand arbitrary macros**.
 
-Therefore refs.el will assume that `(other-macro (foo bar))` is a
+Therefore elisp-refs.el will assume that `(other-macro (foo bar))` is a
 function call to `foo`. If this is incorrect, you may wish to use the
-command `refs-symbol` to find all references to the `foo` symbol.
+command `elisp-refs-symbol` to find all references to the `foo` symbol.
 
 If `other-macro` is a common macro, please consider submitting a patch
-to `refs--function-p` to make refs.el smarter.
+to `elisp-refs--function-p` to make elisp-refs.el smarter.
 
-refs.el also **does not support** indirect calls.
+elisp-refs.el also **does not support** indirect calls.
 
 ``` emacs-lisp
 ;; Since we do a simple syntax walk, this isn't treated as a
@@ -76,7 +76,7 @@ $ cask exec ert-runner
 
 ## Performance
 
-refs.el is CPU-intensive elisp and has been carefully optimised. You
+elisp-refs.el is CPU-intensive elisp and has been carefully optimised. You
 can run the benchmark script with:
 
 ```
@@ -87,7 +87,7 @@ $ ./bench.sh
 New features are carefully measured to ensure performance does not get
 worse.
 
-See refs-bench.el for more details.
+See elisp-refs-bench.el for more details.
 
 ## Changelog
 
@@ -106,4 +106,4 @@ references (to my knowledge).
 **el-search**:
 [el-search](https://elpa.gnu.org/packages/el-search.html) allows you
 to search for arbitrary forms in elisp files. It's slower, but a much
-more general tool. Its design greatly influenced refs.el.
+more general tool. Its design greatly influenced elisp-refs.el.
