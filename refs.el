@@ -281,7 +281,7 @@ For every matching form found, we return the form itself along
 with its start and end position."
   (-non-nil
    (--mapcat
-    (-let [(form start-pos end-pos symbol-positions read-start-pos) it]
+    (-let [(form start-pos end-pos symbol-positions _read-start-pos) it]
       ;; Optimisation: don't bother walking a form if contains no
       ;; references to the symbol we're looking for.
       (when (assq symbol symbol-positions)
@@ -681,7 +681,7 @@ If DIRECTION is -1, moves backwards instead."
   (let* ((start-pos (point))
          (match-pos (get-text-property start-pos 'refs-start-pos))
          current-match-pos)
-    (condition-case err
+    (condition-case _err
         (progn
           ;; Move forward/backwards until we're on the next/previous match.
           (loop-while t
