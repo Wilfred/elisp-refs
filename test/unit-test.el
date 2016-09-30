@@ -82,7 +82,7 @@ the whole buffer."
           (calls (elisp-refs--read-and-find elisp-refs-buf 'foo
                                             #'elisp-refs--function-p)))
      (should
-      (equal calls (list (list '(function foo) 6 11)))))))
+      (equal calls (list (list '(bar #'foo) 1 12)))))))
 
 (ert-deftest elisp-refs--find-calls-in-lambda ()
   "Find function calls in lambda expressions."

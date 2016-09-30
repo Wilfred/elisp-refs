@@ -201,8 +201,8 @@ START-POS and END-POS should be the position of FORM within BUFFER."
    ;; (SYMBOL ...)
    ((eq (car form) symbol)
     t)
-   ;; #'SYMBOL
-   ((equal form (list 'function symbol))
+   ;; (foo ... #'SYMBOL ...)
+   ((--any-p (equal it (list 'function symbol)) form)
     t)
    ;; (funcall 'SYMBOL ...)
    ((and (eq (car form) 'funcall)
