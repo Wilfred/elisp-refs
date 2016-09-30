@@ -1,6 +1,6 @@
 # elisp-elisp-refs.el
-[![Build Status](https://travis-ci.org/Wilfred/refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/refs.el)
-[![Coverage Status](https://coveralls.io/repos/github/Wilfred/refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/refs.el?branch=master)
+[![Build Status](https://travis-ci.org/Wilfred/elisp-refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/elisp-refs.el)
+[![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs.el?branch=master)
 
 elisp-refs.el is an Emacs package for finding references to
 functions, macros or variables. Unlike a dumb text search,
