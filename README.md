@@ -91,6 +91,15 @@ See elisp-refs-bench.el for more details.
 
 ## Changelog
 
+v1.1:
+
+* Rebranded to elisp-refs.
+* Commands are now autoloaded.
+* Added examples to the readme of cases that we can't detect.
+* Sharp-quoted function references are now highlighted with context.
+* Give more feedback on first run, when we're decompressing .el.gz
+  files.
+
 v1.0: Initial release.
 
 ## Alternative Projects
