@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.1
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (list-utils "0.4.4") (loop "2.1") (shut-up "0.3.2"))
+;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (list-utils "0.4.4") (loop "2.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -36,7 +36,6 @@
 (require 'dash)
 (require 'f)
 (require 'loop)
-(require 'shut-up)
 (eval-when-compile (require 'cl-lib))
 
 (defun elisp-refs--format-int (integer)
@@ -342,7 +341,7 @@ visiting the same file."
   (let ((fresh-buffer (generate-new-buffer (format "refs-%s" path))))
     (with-current-buffer fresh-buffer
       (setq-local elisp-refs--path path)
-      (shut-up (insert-file-contents path))
+      (insert-file-contents path)
       ;; We don't enable emacs-lisp-mode because it slows down this
       ;; function significantly. We just need the syntax table for
       ;; scan-sexps to do the right thing with comments.
