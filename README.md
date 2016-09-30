@@ -1,6 +1,7 @@
 # elisp-elisp-refs.el
 [![Build Status](https://travis-ci.org/Wilfred/elisp-refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/elisp-refs.el)
 [![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs.el?branch=master)
+[![MELPA](http://melpa.org/packages/elisp-refs-badge.svg)](http://melpa.org/#/elisp-refs)
 
 elisp-refs.el is an Emacs package for finding references to
 functions, macros or variables. Unlike a dumb text search,
@@ -14,8 +15,7 @@ used, or finding examples of usage.
 
 ## Installation
 
-Add elisp-refs.el to
-`load-path`. [MELPA coming soon](https://github.com/melpa/melpa/pull/4274).
+Install from MELPA (recommended) or just add elisp-refs.el to your `load-path`.
 
 ## Commands available
 
