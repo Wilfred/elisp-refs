@@ -105,6 +105,13 @@ v1.0: Initial release.
 
 ## Alternative Projects
 
+**xref-find-references**: This command is included in Emacs 25.1, but
+it's based on a text search. It is confused by comment and strings,
+and cannot distinguish between functions and variables.
+
+xrefs-find-references is also line oriented, so it does not show the
+whole sexp that matched your search.
+
 **TAGS**: It is possible to record function references in TAGS
 files. Whilst [universal-ctags](https://github.com/universal-ctags/ctags) (formerly
 known as exuberant-ctags) does provide the ability to find references,
@@ -116,4 +123,8 @@ references (to my knowledge).
 **el-search**:
 [el-search](https://elpa.gnu.org/packages/el-search.html) allows you
 to search for arbitrary forms in elisp files. It's slower, but a much
-more general tool. Its design greatly influenced elisp-refs.el.
+more general tool. Its design greatly influenced elisp-refs.
+
+**elisp-slime-nav**:
+[elisp-slime-nav](https://github.com/purcell/elisp-slime-nav) finds
+definitions, not references. It's a great complementary tool.
