@@ -110,7 +110,8 @@ it's based on a text search. It is confused by comment and strings,
 and cannot distinguish between functions and variables.
 
 xrefs-find-references is also line oriented, so it does not show the
-whole sexp that matched your search.
+whole sexp that matched your search. Since it requires text files,
+it doesn't search built-in .el.gz files.
 
 **TAGS**: It is possible to record function references in TAGS
 files. Whilst [universal-ctags](https://github.com/universal-ctags/ctags) (formerly
