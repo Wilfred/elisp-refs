@@ -15,7 +15,7 @@ This is particularly useful for finding all the places a function is
 used, or finding examples of usage.
 
 Interested readers may enjoy my blog post:
-[Searching A Million Lines Of Lisp](http://www.wilfred.me.uk/blog/2016/09/30/searching-a-million-lines-of-lisp/)
+[Searching A Million Lines Of Lisp](http://www.wilfred.me.uk/blog/2016/09/30/searching-a-million-lines-of-lisp/).
 
 ## Installation
 
@@ -40,7 +40,7 @@ elisp-refs understands the following forms:
 * `lambda`
 * `let` `let*`
 * `funcall` `apply`
-* sharp quoted expressions
+* sharp quoted expressions (e.g. `#'some-func`)
 
 ## Limitations
 
@@ -54,7 +54,7 @@ command `elisp-refs-symbol` to find all references to the `foo` symbol.
 If `other-macro` is a common macro, please consider submitting a patch
 to `elisp-refs--function-p` to make elisp-refs smarter.
 
-elisp-refs also **does not support** indirect calls.
+elisp-refs also does not support **indirect calls**.
 
 ``` emacs-lisp
 ;; Since we do a simple syntax walk, this isn't treated as a
@@ -62,11 +62,13 @@ elisp-refs also **does not support** indirect calls.
 (let ((x (symbol-function 'foo)))
   (funcall x))
 
-;; Similarly, pasing functions as arguments will not be treated
-;; as function calls either.
+;; Similarly, indirect function calls are not treated as
+;; function calls.
 (defun call-func (x)
   (funcall x))
 (call-func 'foo)
+;; Tip: if you use sharp quoting, elisp-refs will detect it!
+(call-func #'foo)
 ```
 
 ## Running tests
