@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.1
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (list-utils "0.4.4") (loop "2.1"))
+;; Package-Requires: ((dash "2.12.0") (f "0.18.2") (list-utils "0.4.4") (loop "2.1") (s "1.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 (require 'dash)
 (require 'f)
 (require 'loop)
+(require 's)
 (eval-when-compile (require 'cl-lib))
 
 (defun elisp-refs--format-int (integer)
