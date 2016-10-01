@@ -14,6 +14,9 @@ confused by comments or variables with the same name as functions.
 This is particularly useful for finding all the places a function is
 used, or finding examples of usage.
 
+Interested readers may enjoy my blog post:
+[Searching A Million Lines Of Lisp](http://www.wilfred.me.uk/blog/2016/09/30/searching-a-million-lines-of-lisp/)
+
 ## Installation
 
 Install from MELPA (recommended) or just add elisp-refs to your `load-path`.
