@@ -122,7 +122,7 @@ Internal implementation detail.")
 (defun elisp-refs--walk (buffer form start-pos end-pos symbol match-p &optional path)
   "Walk FORM, a nested list, and return a list of sublists (with
 their positions) where MATCH-P returns t. FORM is traversed
-depth-first, left-to-right.
+depth-first (pre-order traversal, left-to-right).
 
 MATCH-P is called with three arguments:
 \(SYMBOL CURRENT-FORM PATH).
