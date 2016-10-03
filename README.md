@@ -126,11 +126,9 @@ it is not supported in its lisp parser.
 etags, the TAGS implementation shipped with Emacs, cannot find
 references (to my knowledge).
 
-**el-search**:
-[el-search](https://elpa.gnu.org/packages/el-search.html) allows you
-to search for arbitrary forms in elisp files. It's slower, but a much
-more general tool. Its design greatly influenced elisp-refs.
+**[el-search](https://elpa.gnu.org/packages/el-search.html)** allows
+you to search for arbitrary forms in elisp files. It's slower, but a
+much more general tool. Its design greatly influenced elisp-refs.
 
-**elisp-slime-nav**:
-[elisp-slime-nav](https://github.com/purcell/elisp-slime-nav) finds
-definitions, not references. It's a great complementary tool.
+**[elisp-slime-nav](https://github.com/purcell/elisp-slime-nav)**
+finds definitions, not references. It's a great complementary tool.
