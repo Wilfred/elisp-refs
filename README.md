@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs.el?branch=master)
 [![MELPA](http://melpa.org/packages/elisp-refs-badge.svg)](http://melpa.org/#/elisp-refs)
 
-elisp-refs is an intelligent code search for Emacs.
+elisp-refs is an intelligent code search for Emacs lisp.
 
 It can find references to functions, macros or variables. Unlike a
 dumb text search, elisp-refs actually parses the code, so it's never
