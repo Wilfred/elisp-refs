@@ -111,7 +111,7 @@ v1.0: Initial release.
 ## Alternative Projects
 
 **xref-find-references**: This command is included in Emacs 25.1, but
-it's based on a text search. It is confused by comment and strings,
+it's based on a text search. It is confused by comments and strings,
 and cannot distinguish between functions and variables.
 
 xrefs-find-references is also line oriented, so it does not show the
