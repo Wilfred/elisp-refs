@@ -1,5 +1,5 @@
 # elisp-refs
-[![Build Status](https://travis-ci.org/Wilfred/elisp-refs.el.svg?branch=master)](https://travis-ci.org/Wilfred/elisp-refs.el)
+[![Build Status](https://travis-ci.org/Wilfred/elisp-refs.svg?branch=master)](https://travis-ci.org/Wilfred/elisp-refs)
 [![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs.el?branch=master)
 [![MELPA](http://melpa.org/packages/elisp-refs-badge.svg)](http://melpa.org/#/elisp-refs)
 
