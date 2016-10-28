@@ -586,7 +586,7 @@ elisp files."
 elisp files."
   (interactive
    (list (read (completing-read
-                "Macro: "
+                "Special form: "
                 (elisp-refs--filter-obarray #'special-form-p)))))
   (elisp-refs--search symbol
                       (format "special form %s"
