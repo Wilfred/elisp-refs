@@ -547,15 +547,28 @@ MATCH-FN should return a list where each element takes the form:
       ;; Clean up temporary buffers.
       (--each loaded-src-bufs (kill-buffer it)))))
 
+(defun elisp-refs--completing-read-symbol (prompt &optional filter)
+  "Read an interned symbol from the minibuffer,
+defaulting to the symbol at point. PROMPT is the string to prompt
+with.
+
+If FILTER is given, only offer symbols where (FILTER sym) returns
+t."
+  (let ((filter (or filter (lambda (_) t))))
+    (read
+     (completing-read prompt
+                      (elisp-refs--filter-obarray filter)
+                      nil nil nil nil
+                      (-if-let (sym (thing-at-point 'symbol))
+                          (when (funcall filter (read sym))
+                            sym))))))
+
 ;;;###autoload
 (defun elisp-refs-function (symbol)
   "Display all the references to function SYMBOL, in all loaded
 elisp files."
   (interactive
-   ;; TODO: default to function at point.
-   (list (read (completing-read
-                "Function: "
-                (elisp-refs--filter-obarray #'functionp)))))
+   (list (elisp-refs--completing-read-symbol "Function: " #'functionp)))
   (elisp-refs--search symbol
                       (format "function %s"
                               (propertize
@@ -569,9 +582,7 @@ elisp files."
   "Display all the references to macro SYMBOL, in all loaded
 elisp files."
   (interactive
-   (list (read (completing-read
-                "Macro: "
-                (elisp-refs--filter-obarray #'macrop)))))
+   (list (elisp-refs--completing-read-symbol "Macro: " #'macrop)))
   (elisp-refs--search symbol
                       (format "macro %s"
                               (propertize
@@ -585,9 +596,7 @@ elisp files."
   "Display all the references to special form SYMBOL, in all loaded
 elisp files."
   (interactive
-   (list (read (completing-read
-                "Special form: "
-                (elisp-refs--filter-obarray #'special-form-p)))))
+   (list (elisp-refs--completing-read-symbol "Special form: " #'special-form-p)))
   (elisp-refs--search symbol
                       (format "special form %s"
                               (propertize
@@ -601,16 +610,11 @@ elisp files."
   "Display all the references to variable SYMBOL, in all loaded
 elisp files."
   (interactive
-   (list (read
-          (completing-read
-           "Variable: "
-           (elisp-refs--filter-obarray
-            ;; This is awkward. We don't want to just offer defvar
-            ;; variables, because then we can't such for users who
-            ;; have used `let' to bind other symbols. There doesn't
-            ;; seem to be good way to only offer variables that have
-            ;; been bound at some point.
-            (lambda (_) t))))))
+   ;; This is awkward. We don't want to just offer defvar variables,
+   ;; because then we can't such for users who have used `let' to bind
+   ;; other symbols. There doesn't seem to be good way to only offer
+   ;; variables that have been bound at some point.
+   (list (elisp-refs--completing-read-symbol "Variable: " )))
   (elisp-refs--search symbol
                       (format "variable %s"
                               (propertize
@@ -623,9 +627,7 @@ elisp files."
 (defun elisp-refs-symbol (symbol)
   "Display all the references to SYMBOL in all loaded elisp files."
   (interactive
-   (list (read (completing-read
-                "Symbol: "
-                (elisp-refs--filter-obarray (lambda (_) t))))))
+   (list (elisp-refs--completing-read-symbol "Symbol: " )))
   (elisp-refs--search symbol
                       (format "symbol %s"
                               (symbol-name symbol))
