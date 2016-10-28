@@ -1,6 +1,6 @@
 # elisp-refs
 [![Build Status](https://travis-ci.org/Wilfred/elisp-refs.svg?branch=master)](https://travis-ci.org/Wilfred/elisp-refs)
-[![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs.el/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs.el?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/Wilfred/elisp-refs/badge.svg?branch=master)](https://coveralls.io/github/Wilfred/elisp-refs?branch=master)
 [![MELPA](http://melpa.org/packages/elisp-refs-badge.svg)](http://melpa.org/#/elisp-refs)
 
 elisp-refs is an intelligent code search for Emacs lisp.
