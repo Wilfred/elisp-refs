@@ -313,14 +313,6 @@ positions of SYMBOL."
                   (push symbol symbols))))
     symbols))
 
-(defun elisp-refs--macros ()
-  "Return a list of all symbols that are macros."
-  (let (symbols)
-    (mapatoms (lambda (symbol)
-                (when (macrop symbol)
-                  (push symbol symbols))))
-    symbols))
-
 (defun elisp-refs--loaded-files ()
   "Return a list of all files that have been loaded in Emacs.
 Where the file was a .elc, return the path to the .el file instead."
