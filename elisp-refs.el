@@ -251,6 +251,12 @@ We consider parameters to be variables too."
   (cond
    ((consp form)
     nil)
+   ;; Ignore (defun _ (SYMBOL ...) ...)
+   ((or (equal (car path) '(defsubst . 1))
+        (equal (car path) '(defun . 1))
+        (equal (car path) '(defmacro . 1))
+        (equal (car path) '(cl-defun . 1)))
+    nil)
    ;; (let (SYMBOL ...) ...) is a variable, not a function call.
    ((or
      (equal (cl-second path) '(let . 1))
