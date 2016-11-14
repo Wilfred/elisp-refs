@@ -322,7 +322,7 @@ positions of SYMBOL."
 (defun elisp-refs--loaded-files ()
   "Return a list of all files that have been loaded in Emacs.
 Where the file was a .elc, return the path to the .el file instead."
-  (let ((elc-paths (mapcar #'-first-item load-history)))
+  (let ((elc-paths (-non-nil (mapcar #'-first-item load-history))))
     (-non-nil
      (--map
       (let ((el-name (format "%s.el" (f-no-ext it)))
