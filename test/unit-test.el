@@ -34,6 +34,12 @@ whilst visiting that file."
   (should (equal (elisp-refs--format-int -1234) "-1,234"))
   (should (equal (elisp-refs--format-int 1234567) "1,234,567")))
 
+(ert-deftest elisp-refs--pluralize ()
+  (should (equal (elisp-refs--pluralize 0 "thing") "0 things"))
+  (should (equal (elisp-refs--pluralize 1 "thing") "1 thing"))
+  (should (equal (elisp-refs--pluralize 2 "thing") "2 things"))
+  (should (equal (elisp-refs--pluralize 1001 "thing") "1,001 things")))
+
 (ert-deftest elisp-refs--unindent-split-properties ()
   "Ensure we can still unindent when properties are split
 into separate region. Regression test for a very subtle bug."

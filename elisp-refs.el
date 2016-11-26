@@ -469,20 +469,20 @@ propertize them."
      'path path)
     (buffer-string)))
 
+(defun elisp-refs--pluralize (number thing)
+  "Human-friendly description of NUMBER occurrences of THING."
+  (format "%s %s%s"
+          (elisp-refs--format-int number)
+          thing
+          (if (equal number 1) "" "s")))
+
 (defun elisp-refs--format-count (symbol ref-count file-count)
-  (let ((ref-count-str
-         (if (equal ref-count 1)
-             "1 reference"
-           (format "%s references" (elisp-refs--format-int ref-count))))
-        (file-count-str
-         (cond
-          ((zerop file-count)
-           "")
-          ((equal file-count 1)
-           " in 1 file")
-          (t
-           (format " in %s files" (elisp-refs--format-int file-count))))))
-    (format "Found %s to %s%s." ref-count-str symbol file-count-str)))
+  (format "Found %s to %s%s."
+          (elisp-refs--pluralize ref-count "reference")
+          symbol
+          (if (zerop file-count)
+              ""
+            (format " in %s" (elisp-refs--pluralize file-count "file")))))
 
 ;; TODO: if we have multiple matches on one line, we repeatedly show
 ;; that line. That's slighly confusing.
