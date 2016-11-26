@@ -53,7 +53,7 @@
      (s-join "," parts))))
 
 (defsubst elisp-refs--start-pos (end-pos)
-  "Find the start position of form ending at END-FORM
+  "Find the start position of form ending at END-POS
 in the current buffer."
   (scan-sexps end-pos -1))
 
