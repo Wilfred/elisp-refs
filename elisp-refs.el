@@ -617,8 +617,8 @@ elisp files."
 elisp files."
   (interactive
    ;; This is awkward. We don't want to just offer defvar variables,
-   ;; because then we can't such for users who have used `let' to bind
-   ;; other symbols. There doesn't seem to be good way to only offer
+   ;; because then we can't search for code which uses `let' to bind
+   ;; symbols. There doesn't seem to be a good way to only offer
    ;; variables that have been bound at some point.
    (list (elisp-refs--completing-read-symbol "Variable: " )))
   (elisp-refs--search symbol
