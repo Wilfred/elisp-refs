@@ -126,6 +126,7 @@ v1.1:
 * Sharp-quoted function references are now highlighted with context.
 * Give more feedback on first run, when we're decompressing .el.gz
   files.
+* Searches now default to the symbol at point.
 
 v1.0: Initial release.
 
