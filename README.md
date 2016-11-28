@@ -111,7 +111,10 @@ See elisp-refs-bench.el for more details.
 
 v1.2:
 
-* Nothing yet.
+* You can now filter search results to a directory. This is useful
+  when working on large elisp codebases, and it's faster too.
+* Results buffers now include a link to describe the thing being
+  searched for.
 
 v1.1:
 
