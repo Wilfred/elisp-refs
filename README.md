@@ -29,6 +29,16 @@ Install from MELPA (recommended) or just add elisp-refs to your `load-path`.
 * `elisp-refs-special` (find special form calls)
 * `elisp-refs-symbol` (find all references to a symbol)
 
+These command search all the files currently loaded in your Emacs
+instance.
+
+If called with a prefix, you can limit search results specific
+directories. For example:
+
+`C-u M-x elisp-refs-function RET format RET ~/.emacs.d/elpa RET`
+
+will search loaded elisp files installed via ELPA.
+
 ## Semantic analysis
 
 elisp-refs has *street smarts*: given `(defun foo (bar) (baz))`, it

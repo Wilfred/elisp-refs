@@ -476,18 +476,28 @@ propertize them."
           thing
           (if (equal number 1) "" "s")))
 
-(defun elisp-refs--format-count (symbol ref-count file-count)
-  (format "Found %s to %s%s."
-          (elisp-refs--pluralize ref-count "reference")
-          symbol
-          (if (zerop file-count)
-              ""
-            (format " in %s" (elisp-refs--pluralize file-count "file")))))
+(defun elisp-refs--format-count (symbol ref-count file-count
+                                        searched-file-count prefix)
+  (let* ((file-str (if (zerop file-count)
+                       ""
+                     (format " in %s" (elisp-refs--pluralize file-count "file"))))
+         (found-str (format "Found %s to %s%s."
+                            (elisp-refs--pluralize ref-count "reference")
+                            symbol
+                            file-str))
+         (searched-str (if prefix
+                           (format "Searched %s in %s."
+                                   (elisp-refs--pluralize searched-file-count "loaded file")
+                                   (elisp-refs--path-button (file-name-as-directory prefix)))
+                         (format "Searched all %s loaded in Emacs."
+                                 (elisp-refs--pluralize searched-file-count "file")))))
+    (s-word-wrap 70 (format "%s %s" found-str searched-str))))
 
 ;; TODO: if we have multiple matches on one line, we repeatedly show
 ;; that line. That's slighly confusing.
-(defun elisp-refs--show-results (symbol description results)
-  "Given a list where each element takes the form \(forms . buffer\),
+(defun elisp-refs--show-results (symbol description results
+                                        searched-file-count prefix)
+  "Given a RESULTS list where each element takes the form \(forms . buffer\),
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
@@ -498,7 +508,9 @@ render a friendly results buffer."
      (elisp-refs--format-count
       description
       (-sum (--map (length (car it)) results))
-      (length results))
+      (length results)
+      searched-file-count
+      prefix)
      "\n\n")
     ;; Insert the results.
     (--each results
@@ -519,8 +531,10 @@ render a friendly results buffer."
     ;; Cleanup buffers created when highlighting results.
     (kill-buffer elisp-refs--highlighting-buffer)))
 
-(defun elisp-refs--search (symbol description match-fn)
+(defun elisp-refs--search (symbol description match-fn &optional path-prefix)
   "Search for references to SYMBOL in all loaded files, by calling MATCH-FN on each buffer.
+If PATH-PREFIX is given, limit to loaded files whose path starts with that prefix.
+
 Display the results in a hyperlinked buffer.
 
 MATCH-FN should return a list where each element takes the form:
@@ -529,8 +543,11 @@ MATCH-FN should return a list where each element takes the form:
          ;; performance improves if we GC less frequently.
          (gc-cons-percentage 0.8)
          (loaded-paths (elisp-refs--loaded-files))
-         (total-paths (length loaded-paths))
-         (loaded-src-bufs (mapcar #'elisp-refs--contents-buffer loaded-paths)))
+         (matching-paths (if path-prefix
+                             (--filter (s-starts-with? path-prefix it) loaded-paths)
+                           loaded-paths))
+         (total-paths (length matching-paths))
+         (loaded-src-bufs (mapcar #'elisp-refs--contents-buffer matching-paths)))
     ;; Use unwind-protect to ensure we always cleanup temporary
     ;; buffers, even if the user hits C-g.
     (unwind-protect
@@ -546,10 +563,11 @@ MATCH-FN should return a list where each element takes the form:
               ;; Give feedback to the user on our progress, because
               ;; searching takes several seconds.
               (when (zerop (mod searched 10))
-                (message "Searched %s/%s files on load-path" searched total-paths))
+                (message "Searched %s/%s files" searched total-paths))
               (cl-incf searched)))
-          (message "Searched %s/%s files on load-path" total-paths total-paths)
-          (elisp-refs--show-results symbol description forms-and-bufs))
+          (message "Searched %s/%s files" total-paths total-paths)
+          (elisp-refs--show-results symbol description forms-and-bufs
+                                    total-paths path-prefix))
       ;; Clean up temporary buffers.
       (--each loaded-src-bufs (kill-buffer it)))))
 
@@ -570,49 +588,64 @@ t."
                             sym))))))
 
 ;;;###autoload
-(defun elisp-refs-function (symbol)
+(defun elisp-refs-function (symbol &optional path-prefix)
   "Display all the references to function SYMBOL, in all loaded
-elisp files."
+elisp files.
+
+If called with a prefix, prompt for a directory to limit the search."
   (interactive
-   (list (elisp-refs--completing-read-symbol "Function: " #'functionp)))
+   (list (elisp-refs--completing-read-symbol "Function: " #'functionp)
+         (when current-prefix-arg
+           (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
                       (format "function %s"
                               (propertize
                                (symbol-name symbol)
                                'face 'font-lock-function-name-face))
                       (lambda (buf)
-                        (elisp-refs--read-and-find buf symbol #'elisp-refs--function-p))))
+                        (elisp-refs--read-and-find buf symbol #'elisp-refs--function-p))
+                      path-prefix))
 
 ;;;###autoload
-(defun elisp-refs-macro (symbol)
+(defun elisp-refs-macro (symbol &optional path-prefix)
   "Display all the references to macro SYMBOL, in all loaded
-elisp files."
+elisp files.
+
+If called with a prefix, prompt for a directory to limit the search."
   (interactive
-   (list (elisp-refs--completing-read-symbol "Macro: " #'macrop)))
+   (list (elisp-refs--completing-read-symbol "Macro: " #'macrop)
+         (when current-prefix-arg
+           (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
                       (format "macro %s"
                               (propertize
                                (symbol-name symbol)
                                'face 'font-lock-function-name-face))
                       (lambda (buf)
-                        (elisp-refs--read-and-find buf symbol #'elisp-refs--macro-p))))
+                        (elisp-refs--read-and-find buf symbol #'elisp-refs--macro-p))
+                      path-prefix))
 
 ;;;###autoload
-(defun elisp-refs-special (symbol)
+(defun elisp-refs-special (symbol &optional path-prefix)
   "Display all the references to special form SYMBOL, in all loaded
-elisp files."
+elisp files.
+
+If called with a prefix, prompt for a directory to limit the search."
   (interactive
-   (list (elisp-refs--completing-read-symbol "Special form: " #'special-form-p)))
+   (list (elisp-refs--completing-read-symbol "Special form: " #'special-form-p)
+         (when current-prefix-arg
+           (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
                       (format "special form %s"
                               (propertize
                                (symbol-name symbol)
                                'face 'font-lock-keyword-face))
                       (lambda (buf)
-                        (elisp-refs--read-and-find buf symbol #'elisp-refs--special-p))))
+                        (elisp-refs--read-and-find buf symbol #'elisp-refs--special-p))
+                      path-prefix))
 
 ;;;###autoload
-(defun elisp-refs-variable (symbol)
+(defun elisp-refs-variable (symbol &optional path-prefix)
   "Display all the references to variable SYMBOL, in all loaded
 elisp files."
   (interactive
@@ -627,10 +660,11 @@ elisp files."
                                (symbol-name symbol)
                                'face 'font-lock-variable-name-face))
                       (lambda (buf)
-                        (elisp-refs--read-and-find buf symbol #'elisp-refs--variable-p))))
+                        (elisp-refs--read-and-find buf symbol #'elisp-refs--variable-p))
+                      path-prefix))
 
 ;;;###autoload
-(defun elisp-refs-symbol (symbol)
+(defun elisp-refs-symbol (symbol &optional path-prefix)
   "Display all the references to SYMBOL in all loaded elisp files."
   (interactive
    (list (elisp-refs--completing-read-symbol "Symbol: " )))
@@ -638,7 +672,8 @@ elisp files."
                       (format "symbol %s"
                               (symbol-name symbol))
                       (lambda (buf)
-                        (elisp-refs--read-and-find-symbol buf symbol))))
+                        (elisp-refs--read-and-find-symbol buf symbol))
+                      path-prefix))
 
 (define-derived-mode elisp-refs-mode special-mode "Refs"
   "Major mode for refs results buffers.")
