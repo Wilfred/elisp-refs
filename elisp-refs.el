@@ -469,6 +469,36 @@ propertize them."
      'path path)
     (buffer-string)))
 
+(defun elisp-refs--describe (button)
+  "Show *Help* for the symbol referenced by BUTTON."
+  (let ((symbol (button-get button 'symbol))
+        (kind (button-get button 'kind)))
+    (cond ((eq kind 'symbol)
+           (describe-symbol symbol))
+          ((eq kind 'variable)
+           (describe-variable symbol))
+          (t
+           ;; Emacs uses `describe-function' for functions, macros and
+           ;; special forms.
+           (describe-function symbol)))))
+
+(define-button-type 'elisp-refs-describe-button
+  'action 'elisp-refs--describe
+  'follow-link t
+  'help-echo "Describe")
+
+(defun elisp-refs--describe-button (symbol kind)
+  "Return a button that shows *Help* for SYMBOL.
+KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
+  (with-temp-buffer
+    (insert (symbol-name kind) " ")
+    (insert-text-button
+     (symbol-name symbol)
+     :type 'elisp-refs-describe-button
+     'symbol symbol
+     'kind kind)
+    (buffer-string)))
+
 (defun elisp-refs--pluralize (number thing)
   "Human-friendly description of NUMBER occurrences of THING."
   (format "%s %s%s"
@@ -598,10 +628,7 @@ If called with a prefix, prompt for a directory to limit the search."
          (when current-prefix-arg
            (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
-                      (format "function %s"
-                              (propertize
-                               (symbol-name symbol)
-                               'face 'font-lock-function-name-face))
+                      (elisp-refs--describe-button symbol 'function)
                       (lambda (buf)
                         (elisp-refs--read-and-find buf symbol #'elisp-refs--function-p))
                       path-prefix))
@@ -617,10 +644,7 @@ If called with a prefix, prompt for a directory to limit the search."
          (when current-prefix-arg
            (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
-                      (format "macro %s"
-                              (propertize
-                               (symbol-name symbol)
-                               'face 'font-lock-function-name-face))
+                      (elisp-refs--describe-button symbol 'macro)
                       (lambda (buf)
                         (elisp-refs--read-and-find buf symbol #'elisp-refs--macro-p))
                       path-prefix))
@@ -636,10 +660,7 @@ If called with a prefix, prompt for a directory to limit the search."
          (when current-prefix-arg
            (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
-                      (format "special form %s"
-                              (propertize
-                               (symbol-name symbol)
-                               'face 'font-lock-keyword-face))
+                      (elisp-refs--describe-button symbol 'special-form)
                       (lambda (buf)
                         (elisp-refs--read-and-find buf symbol #'elisp-refs--special-p))
                       path-prefix))
@@ -655,10 +676,7 @@ elisp files."
    ;; variables that have been bound at some point.
    (list (elisp-refs--completing-read-symbol "Variable: " )))
   (elisp-refs--search symbol
-                      (format "variable %s"
-                              (propertize
-                               (symbol-name symbol)
-                               'face 'font-lock-variable-name-face))
+                      (elisp-refs--describe-button symbol 'variable)
                       (lambda (buf)
                         (elisp-refs--read-and-find buf symbol #'elisp-refs--variable-p))
                       path-prefix))
@@ -669,8 +687,7 @@ elisp files."
   (interactive
    (list (elisp-refs--completing-read-symbol "Symbol: " )))
   (elisp-refs--search symbol
-                      (format "symbol %s"
-                              (symbol-name symbol))
+                      (elisp-refs--describe-button symbol 'symbol)
                       (lambda (buf)
                         (elisp-refs--read-and-find-symbol buf symbol))
                       path-prefix))
