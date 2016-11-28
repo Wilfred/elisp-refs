@@ -97,6 +97,10 @@ See elisp-refs-bench.el for more details.
 
 ## Changelog
 
+v1.2:
+
+* Nothing yet.
+
 v1.1:
 
 * Rebranded to elisp-refs.
