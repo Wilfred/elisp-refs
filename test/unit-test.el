@@ -424,3 +424,13 @@ backquote forms."
   (elisp-refs-function 'format-message "/usr/share/emacs")
   (should
    (equal (buffer-name) "*refs: format-message*")))
+
+(ert-deftest elisp-refs-next-match ()
+  "Ensure movement commands move between results."
+  ;; First, get a results buffer.
+  (elisp-refs-function 'format-message "/usr/share/emacs")
+  ;; After moving to the first result, we should have a property that
+  ;; tells us where the result came from.
+  (elisp-refs-next-match)
+  (should
+   (not (null (get-text-property (point) 'elisp-refs-start-pos)))))
