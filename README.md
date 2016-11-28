@@ -57,7 +57,7 @@ to `elisp-refs--function-p` to make elisp-refs smarter.
 elisp-refs also does not support **indirect calls**.
 
 ``` emacs-lisp
-;; Since we do a simple syntax walk, this isn't treated as a
+;; Since we do a simple syntax tree walk, this isn't treated as a
 ;; call to foo.
 (let ((x (symbol-function 'foo)))
   (funcall x))
@@ -67,7 +67,9 @@ elisp-refs also does not support **indirect calls**.
 (defun call-func (x)
   (funcall x))
 (call-func 'foo)
-;; Tip: if you use sharp quoting, elisp-refs will detect it!
+
+;; However, if you use sharp quoting, elisp-refs knows it's a function
+reference!
 (call-func #'foo)
 ```
 
