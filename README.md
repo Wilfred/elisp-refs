@@ -32,12 +32,14 @@ Install from MELPA (recommended) or just add elisp-refs to your `load-path`.
 These command search all the files currently loaded in your Emacs
 instance.
 
-If called with a prefix, you can limit search results specific
+If called with a prefix, you can limit search results to specific
 directories. For example:
 
-`C-u M-x elisp-refs-function RET format RET ~/.emacs.d/elpa RET`
+`C-u M-x elisp-refs-macro RET pcase RET ~/.emacs.d/elpa/magit-20160927.510 RET`
 
-will search loaded elisp files installed via ELPA.
+will search for uses of `pcase` in magit:
+
+![filtering screenshot](refs_filtered.png)
 
 ## Semantic analysis
 
