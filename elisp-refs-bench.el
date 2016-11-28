@@ -39,7 +39,8 @@
       (insert "(defun foo (bar) (if bar nil (with-current-buffer bar))) ;; blah")
       (setq-local elisp-refs--path "/tmp/foo.el"))
     (elisp-refs--print-time
-     (elisp-refs--show-results 'foo "foo bar" (list (cons forms buf))))
+     (elisp-refs--show-results 'foo "foo bar" (list (cons forms buf))
+                               20 nil))
     (kill-buffer buf)))
 
 (defun elisp-refs--report-loc ()

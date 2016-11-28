@@ -12,6 +12,7 @@ env:
 script:
   - emacs --version
   - make test
+  - ./bench.sh
 
 notifications:
   email: false
