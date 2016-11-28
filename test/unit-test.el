@@ -418,3 +418,9 @@ backquote forms."
   (elisp-refs-symbol 'format-message)
   (should
    (equal (buffer-name) "*refs: format-message*")))
+
+(ert-deftest elisp-refs-function-prefix ()
+  "Smoke test for searching with a path prefix."
+  (elisp-refs-function 'format-message "/usr/share/emacs")
+  (should
+   (equal (buffer-name) "*refs: format-message*")))
