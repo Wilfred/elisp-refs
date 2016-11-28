@@ -428,7 +428,7 @@ backquote forms."
 (ert-deftest elisp-refs-next-match ()
   "Ensure movement commands move between results."
   ;; First, get a results buffer.
-  (elisp-refs-function 'format-message)
+  (elisp-refs-function 'lsh)
   ;; After moving to the first result, we should have a property that
   ;; tells us where the result came from.
   (elisp-refs-next-match)
