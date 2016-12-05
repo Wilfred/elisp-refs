@@ -524,7 +524,7 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
     (s-word-wrap 70 (format "%s %s" found-str searched-str))))
 
 ;; TODO: if we have multiple matches on one line, we repeatedly show
-;; that line. That's slighly confusing.
+;; that line. That's slightly confusing.
 (defun elisp-refs--show-results (symbol description results
                                         searched-file-count prefix)
   "Given a RESULTS list where each element takes the form \(forms . buffer\),
