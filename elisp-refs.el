@@ -319,7 +319,7 @@ positions of SYMBOL."
                   (push symbol symbols))))
     symbols))
 
-(defun elisp-refs--loaded-files ()
+(defun elisp-refs--loaded-paths ()
   "Return a list of all files that have been loaded in Emacs.
 Where the file was a .elc, return the path to the .el file instead."
   (let ((elc-paths (-non-nil (mapcar #'-first-item load-history))))
@@ -572,7 +572,7 @@ MATCH-FN should return a list where each element takes the form:
   (let* (;; Our benchmark suggests we spend a lot of time in GC, and
          ;; performance improves if we GC less frequently.
          (gc-cons-percentage 0.8)
-         (loaded-paths (elisp-refs--loaded-files))
+         (loaded-paths (elisp-refs--loaded-paths))
          (matching-paths (if path-prefix
                              (--filter (s-starts-with? path-prefix it) loaded-paths)
                            loaded-paths))

@@ -46,7 +46,7 @@
 (defun elisp-refs--report-loc ()
   "Report the total number of lines of code searched."
   (interactive)
-  (let* ((loaded-paths (elisp-refs--loaded-files))
+  (let* ((loaded-paths (elisp-refs--loaded-paths))
          (loaded-src-bufs (shut-up (-map #'elisp-refs--contents-buffer loaded-paths)))
          (total-lines (-sum (--map (with-current-buffer it
                                      (line-number-at-pos (point-max)))
