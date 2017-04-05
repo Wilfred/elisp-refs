@@ -565,8 +565,12 @@ render a friendly results buffer."
   "Return a list of open buffers, one for each path in `load-path'."
   (mapcar #'elisp-refs--contents-buffer (elisp-refs--loaded-paths)))
 
-(defun elisp-refs--search-1 (symbol bufs description match-fn)
-  "Search for references to SYMBOL in BUFS, by calling MATCH-FN on each buffer.
+(defun elisp-refs--search-1 (bufs match-fn)
+  "Call MATCH-FN on each buffer in BUFS, reporting progress
+and accumulating results.
+
+BUFS should be disposable: we make no effort to preserve their
+state during searching.
 
 MATCH-FN should return a list where each element takes the form:
 \(form start-pos end-pos)."
@@ -609,7 +613,7 @@ MATCH-FN should return a list where each element takes the form:
     (unwind-protect
         (progn
           (let ((forms-and-bufs
-                 (elisp-refs--search-1 symbol loaded-src-bufs description match-fn)))
+                 (elisp-refs--search-1 loaded-src-bufs match-fn)))
             (elisp-refs--show-results symbol description forms-and-bufs
                                       (length loaded-src-bufs) path-prefix)))
       ;; Clean up temporary buffers.
