@@ -686,13 +686,17 @@ If called with a prefix, prompt for a directory to limit the search."
 ;;;###autoload
 (defun elisp-refs-variable (symbol &optional path-prefix)
   "Display all the references to variable SYMBOL, in all loaded
-elisp files."
+elisp files.
+
+If called with a prefix, prompt for a directory to limit the search."
   (interactive
    ;; This is awkward. We don't want to just offer defvar variables,
    ;; because then we can't search for code which uses `let' to bind
    ;; symbols. There doesn't seem to be a good way to only offer
    ;; variables that have been bound at some point.
-   (list (elisp-refs--completing-read-symbol "Variable: " )))
+   (list (elisp-refs--completing-read-symbol "Variable: " )
+         (when current-prefix-arg
+           (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
                       (elisp-refs--describe-button symbol 'variable)
                       (lambda (buf)
@@ -701,9 +705,14 @@ elisp files."
 
 ;;;###autoload
 (defun elisp-refs-symbol (symbol &optional path-prefix)
-  "Display all the references to SYMBOL in all loaded elisp files."
+  "Display all the references to SYMBOL in all loaded elisp files.
+
+If called with a prefix, prompt for a directory to limit the
+search."
   (interactive
-   (list (elisp-refs--completing-read-symbol "Symbol: " )))
+   (list (elisp-refs--completing-read-symbol "Symbol: " )
+         (when current-prefix-arg
+           (read-directory-name "Limit search to loaded files in: "))))
   (elisp-refs--search symbol
                       (elisp-refs--describe-button symbol 'symbol)
                       (lambda (buf)
