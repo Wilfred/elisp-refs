@@ -113,7 +113,7 @@ See elisp-refs-bench.el for more details.
 
 v1.3:
 
-No changes yet.
+* Refs buffers now have names of the form `*refs: foo*`.
 
 v1.2:
 
