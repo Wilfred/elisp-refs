@@ -111,6 +111,10 @@ See elisp-refs-bench.el for more details.
 
 ## Changelog
 
+v1.3:
+
+No changes yet.
+
 v1.2:
 
 * You can now filter search results to a directory. This is useful
