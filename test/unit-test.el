@@ -389,6 +389,11 @@ backquote forms."
     ;; many tabs
     (should (equal (elisp-refs--replace-tabs "a\t\tb") "a        b"))))
 
+(ert-deftest elisp-refs--file-name-handler ()
+  "Ensure overriding `file-name-handler-alist' doesn't break our functionality."
+  (let (file-name-handler-alist)
+    (elisp-refs-function 'buffer-substring-no-properties)))
+
 (ert-deftest elisp-refs-function ()
   "Smoke test for `elisp-refs-function'."
   (elisp-refs-function 'format)

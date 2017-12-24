@@ -337,7 +337,11 @@ Where the file was a .elc, return the path to the .el file instead."
   "Read PATH into a disposable buffer, and return it.
 Works around the fact that Emacs won't allow multiple buffers
 visiting the same file."
-  (let ((fresh-buffer (generate-new-buffer (format " *refs-%s*" path))))
+  (let ((fresh-buffer (generate-new-buffer (format " *refs-%s*" path)))
+        (file-name-handler-alist
+         '(("\\(?:\\.dz\\|\\.txz\\|\\.xz\\|\\.lzma\\|\\.lz\\|\\.g?z\\|\\.\\(?:tgz\\|svgz\\|sifz\\)\\|\\.tbz2?\\|\\.bz2\\|\\.Z\\)\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)?\\'" .
+            jka-compr-handler)
+           ("\\`/:" . file-name-non-special))))
     (with-current-buffer fresh-buffer
       (setq-local elisp-refs--path path)
       (insert-file-contents path)
