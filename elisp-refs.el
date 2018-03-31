@@ -643,11 +643,20 @@ t."
   "Display all the references to function SYMBOL, in all loaded
 elisp files.
 
-If called with a prefix, prompt for a directory to limit the search."
+If called with a prefix, prompt for a directory to limit the search.
+
+This searches for functions, not macros. For that, see
+`elisp-refs-macro'."
   (interactive
    (list (elisp-refs--completing-read-symbol "Function: " #'functionp)
          (when current-prefix-arg
            (read-directory-name "Limit search to loaded files in: "))))
+  (when (not (functionp symbol))
+    (if (macrop symbol)
+        (user-error "%s is a macro. Did you mean elisp-refs-macro?"
+                    symbol)
+      (user-error "%s is not a function. Did you mean elisp-refs-symbol?"
+                  symbol)))
   (elisp-refs--search symbol
                       (elisp-refs--describe-button symbol 'function)
                       (lambda (buf)
@@ -659,11 +668,20 @@ If called with a prefix, prompt for a directory to limit the search."
   "Display all the references to macro SYMBOL, in all loaded
 elisp files.
 
-If called with a prefix, prompt for a directory to limit the search."
+If called with a prefix, prompt for a directory to limit the search.
+
+This searches for macros, not functions. For that, see
+`elisp-refs-function'."
   (interactive
    (list (elisp-refs--completing-read-symbol "Macro: " #'macrop)
          (when current-prefix-arg
            (read-directory-name "Limit search to loaded files in: "))))
+  (when (not (macrop symbol))
+    (if (functionp symbol)
+        (user-error "%s is a function. Did you mean elisp-refs-function?"
+                    symbol)
+      (user-error "%s is not a function. Did you mean elisp-refs-symbol?"
+                  symbol)))
   (elisp-refs--search symbol
                       (elisp-refs--describe-button symbol 'macro)
                       (lambda (buf)
