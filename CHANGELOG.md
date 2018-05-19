@@ -1,3 +1,7 @@
+v1.4:
+
+Nothing yet.
+
 v1.3:
 
 * Refs buffers now have names of the form `*refs: foo*`.
