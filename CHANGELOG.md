@@ -1,0 +1,23 @@
+v1.3:
+
+* Refs buffers now have names of the form `*refs: foo*`.
+
+v1.2:
+
+* You can now filter search results to a directory. This is useful
+  when working on large elisp codebases, and it's faster too.
+* Results buffers now include a link to describe the thing being
+  searched for.
+
+v1.1:
+
+* Rebranded to elisp-refs.
+* Commands are now autoloaded.
+* Added examples to the readme of cases that we can't detect.
+* Sharp-quoted function references are now highlighted with context.
+* Give more feedback on first run, when we're decompressing .el.gz
+  files.
+* Searches now default to the symbol at point.
+
+v1.0: Initial release.
+
