@@ -1,6 +1,8 @@
 v1.3:
 
 * Refs buffers now have names of the form `*refs: foo*`.
+* Fixed an issue with a dependency on a loop.el version that doesn't
+  exist.
 
 v1.2:
 
