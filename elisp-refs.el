@@ -119,6 +119,15 @@ Internal implementation detail.")
            (error "Unexpected error whilst reading %s position %s: %s"
                   (abbreviate-file-name elisp-refs--path) (point) err)))))))
 
+(defun elisp-refs--proper-list-p (val)
+  "Is VAL a proper list?"
+  (if (fboundp 'format-proper-list-p)
+      ;; Emacs stable.
+      (with-no-warnings (format-proper-list-p val))
+    ;; Function was renamed in Emacs master:
+    ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=2fde6275b69fd113e78243790bf112bbdd2fe2bf
+    (with-no-warnings (proper-list-p val))))
+
 (defun elisp-refs--walk (buffer form start-pos end-pos symbol match-p &optional path)
   "Walk FORM, a nested list, and return a list of sublists (with
 their positions) where MATCH-P returns t. FORM is traversed
@@ -156,7 +165,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
       (--each (-zip form subforms-positions)
         (-let [(subform subform-start subform-end) it]
           (when (or
-                 (and (consp subform) (format-proper-list-p subform))
+                 (and (consp subform) (elisp-refs--proper-list-p subform))
                  (and (symbolp subform) (eq subform symbol)))
             (-when-let (subform-matches
                         (elisp-refs--walk

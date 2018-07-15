@@ -1,6 +1,7 @@
 v1.4:
 
-Nothing yet.
+Fixed an issue when running elisp-refs on Emacs master, which renamed
+`format-proper-list-p` to `proper-list-p` (and moved it to subr.el).
 
 v1.3:
 
