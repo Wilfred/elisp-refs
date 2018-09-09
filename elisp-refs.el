@@ -535,6 +535,8 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
                                  (elisp-refs--pluralize searched-file-count "file")))))
     (s-word-wrap 70 (format "%s %s" found-str searched-str))))
 
+(require 'magit)
+
 ;; TODO: if we have multiple matches on one line, we repeatedly show
 ;; that line. That's slightly confusing.
 (defun elisp-refs--show-results (symbol description results
@@ -543,33 +545,34 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
-    (setq buffer-read-only nil)
     (erase-buffer)
-    ;; Insert the header.
-    (insert
-     (elisp-refs--format-count
-      description
-      (-sum (--map (length (car it)) results))
-      (length results)
-      searched-file-count
-      prefix)
-     "\n\n")
-    ;; Insert the results.
-    (--each results
-      (-let* (((forms . buf) it)
-              (path (with-current-buffer buf elisp-refs--path)))
-        (insert
-         (propertize "File: " 'face 'bold)
-         (elisp-refs--path-button path) "\n")
-        (--each forms
-          (-let [(_ start-pos end-pos) it]
-            (insert (elisp-refs--containing-lines buf start-pos end-pos)
-                    "\n")))
-        (insert "\n")))
-    ;; Prepare the buffer for the user.
-    (goto-char (point-min))
     (elisp-refs-mode)
-    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
+      (save-excursion
+	(magit-insert-section (elisp-refs-buf symbol)
+	  (magit-insert-heading
+	    (elisp-refs--format-count
+	     description
+	     (-sum (--map (length (car it)) results))
+	     (length results)
+	     searched-file-count
+	     prefix)
+	    "\n\n")
+	  (--each results
+	    (-let* (((forms . buf) it)
+		    (path (with-current-buffer buf elisp-refs--path)))
+	      (magit-insert-section (elisp-refs-file path)
+		(magit-insert-heading
+		  (propertize "File: " 'face 'bold)
+		  (elisp-refs--path-button path) "\n")
+		(--each forms
+		  (-let [(_ start-pos end-pos) it]
+		    (magit-insert-section (elisp-refs-ref
+					   (list start-pos end-pos))
+		      (magit-insert-heading
+			(elisp-refs--containing-lines buf start-pos end-pos)
+			"\n"))))
+		(insert "\n")))))))
     ;; Cleanup buffers created when highlighting results.
     (kill-buffer elisp-refs--highlighting-buffer)))
 
@@ -751,19 +754,14 @@ search."
 
 (defvar elisp-refs-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; TODO: it would be nice for TAB to navigate to file buttons too,
-    ;; like *Help* does.
-    (set-keymap-parent map special-mode-map)
-    (define-key map (kbd "<tab>") #'elisp-refs-next-match)
-    (define-key map (kbd "<backtab>") #'elisp-refs-prev-match)
-    (define-key map (kbd "n") #'elisp-refs-next-match)
-    (define-key map (kbd "p") #'elisp-refs-prev-match)
+    (set-keymap-parent map magit-mode-map)
     (define-key map (kbd "q") #'kill-this-buffer)
     (define-key map (kbd "RET") #'elisp-refs-visit-match)
+    (define-key map (kbd "<return>") #'elisp-refs-visit-match)
     map)
   "Keymap for `elisp-refs-mode'.")
 
-(define-derived-mode elisp-refs-mode special-mode "Refs"
+(define-derived-mode elisp-refs-mode magit-mode "Refs"
   "Major mode for refs results buffers.")
 
 (defun elisp-refs-visit-match ()
