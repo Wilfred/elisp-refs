@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.5
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.0") (magit-section "3.0.0") (s "1.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 (require 'dash)
 (require 's)
 (require 'format)
+(require 'magit-section)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Internal
@@ -559,30 +560,32 @@ render a friendly results buffer."
     (switch-to-buffer buf)
     (let ((inhibit-read-only t))
       (erase-buffer)
+      (elisp-refs-mode)
       (save-excursion
-        ;; Insert the header.
-        (insert
-         (elisp-refs--format-count
-          description
-          (-sum (--map (length (car it)) results))
-          (length results)
-          searched-file-count
-          prefix)
-         "\n\n")
-        ;; Insert the results.
-        (--each results
-          (-let* (((forms . buf) it)
-                  (path (with-current-buffer buf elisp-refs--path)))
-            (insert
-             (propertize "File: " 'face 'bold)
-             (elisp-refs--path-button path) "\n")
-            (--each forms
-              (-let [(_ start-pos end-pos) it]
-                (insert (elisp-refs--containing-lines buf start-pos end-pos)
-                        "\n")))
-            (insert "\n")))
-        ;; Prepare the buffer for the user.
-        (elisp-refs-mode)))
+        (magit-insert-section (elisp-refs-buffer symbol)
+          (magit-insert-section (elisp-refs-info symbol)
+            (insert (elisp-refs--format-count
+                     description
+                     (-sum (--map (length (car it)) results))
+                     (length results)
+                     searched-file-count
+                     prefix))
+            (insert "\n\n"))
+          (--each results
+            (-let* (((forms . buf) it)
+                    (path (buffer-local-value 'elisp-refs--path buf)))
+              (magit-insert-section (elisp-refs-file path)
+                (magit-insert-heading
+                  (propertize "File: " 'face 'bold)
+                  (elisp-refs--path-button path) ":\n")
+                (--each forms
+                  (-let [(_ start-pos end-pos) it]
+                    (magit-insert-section (elisp-refs-match
+                                           (list start-pos end-pos))
+                      (insert (elisp-refs--containing-lines
+                               buf start-pos end-pos))
+                      (insert "\n"))))
+                (insert "\n")))))))
     ;; Cleanup buffers created when highlighting results.
     (when elisp-refs--highlighting-buffer
       (kill-buffer elisp-refs--highlighting-buffer))))
@@ -771,19 +774,13 @@ search."
 
 (defvar elisp-refs-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; TODO: it would be nice for TAB to navigate to file buttons too,
-    ;; like *Help* does.
-    (set-keymap-parent map special-mode-map)
-    (define-key map (kbd "<tab>") #'elisp-refs-next-match)
-    (define-key map (kbd "<backtab>") #'elisp-refs-prev-match)
-    (define-key map (kbd "n") #'elisp-refs-next-match)
-    (define-key map (kbd "p") #'elisp-refs-prev-match)
+    (set-keymap-parent map magit-section-mode-map)
     (define-key map (kbd "q") #'kill-this-buffer)
     (define-key map (kbd "RET") #'elisp-refs-visit-match)
     map)
   "Keymap for `elisp-refs-mode'.")
 
-(define-derived-mode elisp-refs-mode special-mode "Refs"
+(define-derived-mode elisp-refs-mode magit-section-mode "Refs"
   "Major mode for refs results buffers.")
 
 (defun elisp--refs-visit-match (open-fn)
@@ -798,9 +795,17 @@ Open file with function OPEN_FN. `find-file` or `find-file-other-window`"
     (when (null path)
       (user-error "No match here"))
 
-    ;; If point is not on the first line of the match, work out how
-    ;; far away the first line is.
     (save-excursion
+      ;; If we are still at the beginning of the section, then jump to
+      ;; the first char of match within that line.
+      (when (= (point) (oref (magit-current-section) start))
+        (while (or (looking-at " ")
+                   (eq (get-text-property (point) 'face)
+                       'font-lock-comment-face))
+          (forward-char 1))
+        (setq column-offset (current-column)))
+      ;; If point is not on the first line of the match, work out how
+      ;; far away the first line is.
       (while (equal pos (get-text-property (point) 'elisp-refs-start-pos))
         (forward-line -1)
         (cl-incf line-offset)))
@@ -828,51 +833,6 @@ Open file with function OPEN_FN. `find-file` or `find-file-other-window`"
   "Goto the search result at point, opening in another window."
   (interactive)
   (elisp--refs-visit-match #'find-file-other-window))
-
-
-(defun elisp-refs--move-to-match (direction)
-  "Move point one match forwards.
-If DIRECTION is -1, moves backwards instead."
-  (let* ((start-pos (point))
-         (match-pos (get-text-property start-pos 'elisp-refs-start-pos))
-         current-match-pos)
-    (condition-case _err
-        (progn
-          ;; Move forward/backwards until we're on the next/previous match.
-          (catch 'done
-            (while t
-              (setq current-match-pos
-                    (get-text-property (point) 'elisp-refs-start-pos))
-              (when (and current-match-pos
-                         (not (equal match-pos current-match-pos)))
-                (throw 'done nil))
-              (forward-char direction)))
-          ;; Move to the beginning of that match.
-          (while (equal (get-text-property (point) 'elisp-refs-start-pos)
-                        (get-text-property (1- (point)) 'elisp-refs-start-pos))
-            (forward-char -1))
-          ;; Move forward until we're on the first char of match within that
-          ;; line.
-          (while (or
-                  (looking-at " ")
-                  (eq (get-text-property (point) 'face)
-                      'font-lock-comment-face))
-            (forward-char 1)))
-      ;; If we're at the last result, don't move point.
-      (end-of-buffer
-       (progn
-         (goto-char start-pos)
-         (signal 'end-of-buffer nil))))))
-
-(defun elisp-refs-prev-match ()
-  "Move to the previous search result in the Refs buffer."
-  (interactive)
-  (elisp-refs--move-to-match -1))
-
-(defun elisp-refs-next-match ()
-  "Move to the next search result in the Refs buffer."
-  (interactive)
-  (elisp-refs--move-to-match 1))
 
 (provide 'elisp-refs)
 ;;; elisp-refs.el ends here
