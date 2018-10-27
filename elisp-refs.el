@@ -38,6 +38,8 @@
 (require 'format)
 (eval-when-compile (require 'cl-lib))
 
+(defvar elisp-refs-verbose t)
+
 (defun elisp-refs--format-int (integer)
   "Format INTEGER as a string, with , separating thousands."
   (let* ((number (abs integer))
@@ -604,10 +606,12 @@ MATCH-FN should return a list where each element takes the form:
             (push (cons matching-forms buf) forms-and-bufs))
           ;; Give feedback to the user on our progress, because
           ;; searching takes several seconds.
-          (when (zerop (mod searched 10))
+          (when (and (zerop (mod searched 10))
+                     elisp-refs-verbose)
             (message "Searched %s/%s files" searched total-bufs))
           (cl-incf searched)))
-      (message "Searched %s/%s files" total-bufs total-bufs)
+      (when elisp-refs-verbose
+        (message "Searched %s/%s files" total-bufs total-bufs))
       forms-and-bufs)))
 
 (defun elisp-refs--search (symbol description match-fn &optional path-prefix)

@@ -391,49 +391,65 @@ backquote forms."
 
 (ert-deftest elisp-refs--file-name-handler ()
   "Ensure overriding `file-name-handler-alist' doesn't break our functionality."
-  (let (file-name-handler-alist)
+  (let ((file-name-handler-alist nil)
+        (jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
     (elisp-refs-function 'buffer-substring-no-properties)))
 
 (ert-deftest elisp-refs-function ()
   "Smoke test for `elisp-refs-function'."
-  (elisp-refs-function 'format)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-function 'format))
   (should
    (equal (buffer-name) "*refs: format*")))
 
 (ert-deftest elisp-refs-macro ()
   "Smoke test for `elisp-refs-macro'."
-  (elisp-refs-macro 'when)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-macro 'when))
   (should
    (equal (buffer-name) "*refs: when*")))
 
 (ert-deftest elisp-refs-variable ()
   "Smoke test for `elisp-refs-variable'."
-  (elisp-refs-variable 'case-fold-search)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-variable 'case-fold-search))
   (should
    (equal (buffer-name) "*refs: case-fold-search*")))
 
 (ert-deftest elisp-refs-special ()
   "Smoke test for `elisp-refs-special'."
-  (elisp-refs-special 'prog2)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-special 'prog2))
   (should
    (equal (buffer-name) "*refs: prog2*")))
 
 (ert-deftest elisp-refs-symbol ()
   "Smoke test for `elisp-refs-symbol'."
-  (elisp-refs-symbol 'format-message)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-symbol 'format-message))
   (should
    (equal (buffer-name) "*refs: format-message*")))
 
 (ert-deftest elisp-refs-function-prefix ()
   "Smoke test for searching with a path prefix."
-  (elisp-refs-function 'format-message "/usr/share/emacs")
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    (elisp-refs-function 'format-message "/usr/share/emacs"))
   (should
    (equal (buffer-name) "*refs: format-message*")))
 
 (ert-deftest elisp-refs-next-match ()
   "Ensure movement commands move between results."
-  ;; First, get a results buffer.
-  (elisp-refs-function 'lsh)
+  (let ((jka-compr-verbose nil)
+        (elisp-refs-verbose nil))
+    ;; First, get a results buffer.
+    (elisp-refs-function 'lsh))
   ;; After moving to the first result, we should have a property that
   ;; tells us where the result came from.
   (elisp-refs-next-match)
