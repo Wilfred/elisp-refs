@@ -21,6 +21,7 @@ whilst visiting that file."
        (unwind-protect
            (with-current-buffer ,buf-sym
              (insert ,contents)
+             (set-syntax-table emacs-lisp-mode-syntax-table)
              (shut-up (save-buffer))
              ,@body)
          (kill-buffer ,buf-sym)
@@ -455,3 +456,16 @@ backquote forms."
   (elisp-refs-next-match)
   (should
    (not (null (get-text-property (point) 'elisp-refs-start-pos)))))
+
+(ert-deftest elisp-refs--start-pos ()
+  "Ensure `elisp-refs--start-pos' isn't confused by
+parentheses in comments."
+  (with-temp-backed-buffer
+   "(defun foo ()
+     ;; (
+     )"
+   (message "major mode: %S" major-mode)
+   (should
+    (equal
+     (point-min)
+     (elisp-refs--start-pos (point-max))))))

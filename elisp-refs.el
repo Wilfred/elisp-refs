@@ -56,7 +56,8 @@
 (defsubst elisp-refs--start-pos (end-pos)
   "Find the start position of form ending at END-POS
 in the current buffer."
-  (scan-sexps end-pos -1))
+  (let ((parse-sexp-ignore-comments t))
+    (scan-sexps end-pos -1)))
 
 (defun elisp-refs--sexp-positions (buffer start-pos end-pos)
   "Return a list of start and end positions of all the sexps

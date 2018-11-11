@@ -3,6 +3,9 @@
 Fixed an issue when running elisp-refs on Emacs master, which renamed
 `format-proper-list-p` to `proper-list-p` (and moved it to subr.el).
 
+Fixed an issue where the results buffer showed the wrong lines if
+comments contained parentheses.
+
 ## v1.3
 
 * Refs buffers now have names of the form `*refs: foo*`.
