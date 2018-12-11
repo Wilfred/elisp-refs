@@ -163,6 +163,15 @@ backquote forms."
                                             #'elisp-refs--function-p)))
      (should (null calls)))))
 
+(ert-deftest elisp-refs--find-calls-declare-function ()
+  "Don't confuse `declare-function' arguments with function calls."
+  (with-temp-backed-buffer
+   "(declare-function bbdb-record-field \"ext:bbdb\" (record field))"
+   (let* ((elisp-refs-buf (elisp-refs--contents-buffer (buffer-file-name)))
+          (calls (elisp-refs--read-and-find elisp-refs-buf 'record
+                                            #'elisp-refs--function-p)))
+     (should (null calls)))))
+
 (ert-deftest elisp-refs--find-calls-let-without-assignment ()
   "We shouldn't confuse let declarations with function calls."
   (with-temp-backed-buffer

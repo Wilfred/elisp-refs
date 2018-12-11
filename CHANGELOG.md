@@ -6,6 +6,9 @@ Fixed an issue when running elisp-refs on Emacs master, which renamed
 Fixed an issue where the results buffer showed the wrong lines if
 comments contained parentheses.
 
+Fixed an issue where arguments in `declare-function` were confused
+with a function call.
+
 ## v1.3
 
 * Refs buffers now have names of the form `*refs: foo*`.
