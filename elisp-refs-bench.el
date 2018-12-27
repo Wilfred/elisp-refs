@@ -4,14 +4,15 @@
 
 (require 'elisp-refs)
 (require 'dash)
-(require 'shut-up)
 
 (defmacro elisp-refs--print-time (form)
   "Evaluate FORM, and print the time taken."
   `(progn
      (message "Timing %s" ',form)
      (-let [(total-time gc-runs gc-time)
-            (shut-up (benchmark-run 1 ,form))]
+            (cl-letf (((symbol-function #'message)
+                       (lambda (_format-string &rest _args))))
+              (benchmark-run 1 ,form))]
        (message "Elapsed time: %fs (%fs in %d GCs)"
                 total-time
                 gc-time
@@ -47,7 +48,9 @@
   "Report the total number of lines of code searched."
   (interactive)
   (let* ((loaded-paths (elisp-refs--loaded-paths))
-         (loaded-src-bufs (shut-up (-map #'elisp-refs--contents-buffer loaded-paths)))
+         (loaded-src-bufs (cl-letf (((symbol-function #'message)
+                                     (lambda (_format-string &rest _args))))
+                            (-map #'elisp-refs--contents-buffer loaded-paths)))
          (total-lines (-sum (--map (with-current-buffer it
                                      (line-number-at-pos (point-max)))
                                    loaded-src-bufs))))
