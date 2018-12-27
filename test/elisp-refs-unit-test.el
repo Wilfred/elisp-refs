@@ -22,8 +22,9 @@ whilst visiting that file."
            (with-current-buffer ,buf-sym
              (insert ,contents)
              (set-syntax-table emacs-lisp-mode-syntax-table)
-             (shut-up (save-buffer))
-             ,@body)
+            (cl-letf (((symbol-function #'message)
+                       (lambda (_format-string) &rest _args)))
+              (save-buffer)))
          (kill-buffer ,buf-sym)
          (delete-file ,filename-sym)))))
 
