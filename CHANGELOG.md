@@ -9,6 +9,9 @@ comments contained parentheses.
 Fixed an issue where arguments in `declare-function` were confused
 with a function call.
 
+Fixed an error when pressing RET on a line that didn't have a search
+result.
+
 ## v1.3
 
 * Refs buffers now have names of the form `*refs: foo*`.
