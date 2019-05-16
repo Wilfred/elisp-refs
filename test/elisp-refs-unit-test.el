@@ -475,7 +475,6 @@ parentheses in comments."
    "(defun foo ()
      ;; (
      )"
-   (message "major mode: %S" major-mode)
    (should
     (equal
      (point-min)
