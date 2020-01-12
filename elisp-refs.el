@@ -1,6 +1,6 @@
 ;;; elisp-refs.el --- find callers of elisp functions or macros -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018
+;; Copyright (C) 2016-2020  Wilfred Hughes <me@wilfred.me.uk>
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.4
