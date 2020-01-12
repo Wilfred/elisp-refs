@@ -552,33 +552,32 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    ;; Insert the header.
-    (insert
-     (elisp-refs--format-count
-      description
-      (-sum (--map (length (car it)) results))
-      (length results)
-      searched-file-count
-      prefix)
-     "\n\n")
-    ;; Insert the results.
-    (--each results
-      (-let* (((forms . buf) it)
-              (path (with-current-buffer buf elisp-refs--path)))
-        (insert
-         (propertize "File: " 'face 'bold)
-         (elisp-refs--path-button path) "\n")
-        (--each forms
-          (-let [(_ start-pos end-pos) it]
-            (insert (elisp-refs--containing-lines buf start-pos end-pos)
-                    "\n")))
-        (insert "\n")))
-    ;; Prepare the buffer for the user.
-    (goto-char (point-min))
-    (elisp-refs-mode)
-    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      ;; Insert the header.
+      (insert
+       (elisp-refs--format-count
+        description
+        (-sum (--map (length (car it)) results))
+        (length results)
+        searched-file-count
+        prefix)
+       "\n\n")
+      ;; Insert the results.
+      (--each results
+        (-let* (((forms . buf) it)
+                (path (with-current-buffer buf elisp-refs--path)))
+          (insert
+           (propertize "File: " 'face 'bold)
+           (elisp-refs--path-button path) "\n")
+          (--each forms
+            (-let [(_ start-pos end-pos) it]
+              (insert (elisp-refs--containing-lines buf start-pos end-pos)
+                      "\n")))
+          (insert "\n")))
+      ;; Prepare the buffer for the user.
+      (goto-char (point-min))
+      (elisp-refs-mode))
     ;; Cleanup buffers created when highlighting results.
     (kill-buffer elisp-refs--highlighting-buffer)))
 
