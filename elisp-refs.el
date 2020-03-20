@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.4
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (loop "1.2") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.0") (s "1.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 ;;; Code:
 
 (require 'dash)
-(require 'loop)
 (require 's)
 (require 'format)
 (eval-when-compile (require 'cl-lib))
@@ -70,18 +69,18 @@ Not recursive, so we don't consider subelements of nested sexps."
   (let ((positions nil))
     (with-current-buffer buffer
       (condition-case _err
-          ;; Loop until we can't read any more.
-          (loop-while t
-            (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
-                                   (scan-sexps start-pos 1))))
-              ;; If we've reached a sexp beyond the range requested,
-              ;; or if there are no sexps left, we're done.
-              (when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
-                (loop-break))
-              ;; Otherwise, this sexp is in the range requested.
-              (push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
-                    positions)
-              (setq start-pos sexp-end-pos)))
+	  (catch 'done
+            (while t
+              (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
+                                     (scan-sexps start-pos 1))))
+		;; If we've reached a sexp beyond the range requested,
+		;; or if there are no sexps left, we're done.
+		(when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
+                  (throw 'done nil))
+		;; Otherwise, this sexp is in the range requested.
+		(push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
+                      positions)
+		(setq start-pos sexp-end-pos))))
         ;; Terminate when we see "Containing expression ends prematurely"
         (scan-error nil)))
     (nreverse positions)))
