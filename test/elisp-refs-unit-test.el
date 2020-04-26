@@ -321,7 +321,7 @@ backquote forms."
      (should (null matches)))))
 
 (ert-deftest elisp-refs--find-var-ignores-defs ()
-  "Function definitions and macro definitions are not varible references."
+  "Function definitions and macro definitions are not variable references."
   (with-temp-backed-buffer
    "(defun foo ()) (defmacro foo ())"
    (let* ((elisp-refs-buf (elisp-refs--contents-buffer (buffer-file-name)))

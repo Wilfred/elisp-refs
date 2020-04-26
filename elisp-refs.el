@@ -160,7 +160,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
                ;; Kludge: `elisp-refs--sexp-positions' excludes the ` when
                ;; calculating positions. So, to find the inner
                ;; positions when walking from `(...) to (...), we
-               ;; don't need to increment the start posion.
+               ;; don't need to increment the start position.
                (cons nil (elisp-refs--sexp-positions buffer start-pos end-pos))
              ;; Calculate the positions after the opening paren.
              (elisp-refs--sexp-positions buffer (1+ start-pos) end-pos))))
