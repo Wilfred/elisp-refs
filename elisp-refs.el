@@ -40,7 +40,7 @@
 (defvar elisp-refs-verbose t)
 
 (defun elisp-refs--format-int (integer)
-  "Format INTEGER as a string, with \",\" separating thousands."
+  "Format INTEGER as a string, with , separating thousands."
   (let ((number (abs integer))
         (parts nil))
     (while (> number 999)
