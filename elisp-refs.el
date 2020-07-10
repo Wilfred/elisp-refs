@@ -37,6 +37,8 @@
 (require 'format)
 (eval-when-compile (require 'cl-lib))
 
+;;; Internal
+
 (defvar elisp-refs-verbose t)
 
 (defun elisp-refs--format-int (integer)
@@ -656,6 +658,8 @@ t."
                           (when (funcall filter (read sym))
                             sym))))))
 
+;;; Commands
+
 ;;;###autoload
 (defun elisp-refs-function (symbol &optional path-prefix)
   "Display all the references to function SYMBOL, in all loaded
@@ -757,6 +761,8 @@ search."
                       (lambda (buf)
                         (elisp-refs--read-and-find-symbol buf symbol))
                       path-prefix))
+
+;;; Mode
 
 (defvar elisp-refs-mode-map
   (let ((map (make-sparse-keymap)))
