@@ -40,9 +40,9 @@
 (defvar elisp-refs-verbose t)
 
 (defun elisp-refs--format-int (integer)
-  "Format INTEGER as a string, with , separating thousands."
-  (let* ((number (abs integer))
-         (parts nil))
+  "Format INTEGER as a string, with \",\" separating thousands."
+  (let ((number (abs integer))
+        (parts nil))
     (while (> number 999)
       (push (format "%03d" (mod number 1000))
             parts)
