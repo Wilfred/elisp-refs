@@ -822,13 +822,14 @@ If DIRECTION is -1, moves backwards instead."
     (condition-case _err
         (progn
           ;; Move forward/backwards until we're on the next/previous match.
-          (loop-while t
-            (setq current-match-pos
-                  (get-text-property (point) 'elisp-refs-start-pos))
-            (when (and current-match-pos
-                       (not (equal match-pos current-match-pos)))
-              (loop-break))
-            (forward-char direction))
+          (catch 'done
+            (while t
+              (setq current-match-pos
+                    (get-text-property (point) 'elisp-refs-start-pos))
+              (when (and current-match-pos
+                         (not (equal match-pos current-match-pos)))
+                (throw 'done nil))
+              (forward-char direction)))
           ;; Move to the beginning of that match.
           (while (equal (get-text-property (point) 'elisp-refs-start-pos)
                         (get-text-property (1- (point)) 'elisp-refs-start-pos))
