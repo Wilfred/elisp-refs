@@ -1,11 +1,11 @@
 ;;; elisp-refs.el --- find callers of elisp functions or macros -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018
+;; Copyright (C) 2016-2020  Wilfred Hughes <me@wilfred.me.uk>
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 1.4
 ;; Keywords: lisp
-;; Package-Requires: ((dash "2.12.0") (loop "1.2") (s "1.11.0"))
+;; Package-Requires: ((dash "2.12.0") (s "1.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,17 +33,18 @@
 ;;; Code:
 
 (require 'dash)
-(require 'loop)
 (require 's)
 (require 'format)
 (eval-when-compile (require 'cl-lib))
+
+;;; Internal
 
 (defvar elisp-refs-verbose t)
 
 (defun elisp-refs--format-int (integer)
   "Format INTEGER as a string, with , separating thousands."
-  (let* ((number (abs integer))
-         (parts nil))
+  (let ((number (abs integer))
+        (parts nil))
     (while (> number 999)
       (push (format "%03d" (mod number 1000))
             parts)
@@ -70,18 +71,18 @@ Not recursive, so we don't consider subelements of nested sexps."
   (let ((positions nil))
     (with-current-buffer buffer
       (condition-case _err
-          ;; Loop until we can't read any more.
-          (loop-while t
-            (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
-                                   (scan-sexps start-pos 1))))
-              ;; If we've reached a sexp beyond the range requested,
-              ;; or if there are no sexps left, we're done.
-              (when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
-                (loop-break))
-              ;; Otherwise, this sexp is in the range requested.
-              (push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
-                    positions)
-              (setq start-pos sexp-end-pos)))
+	  (catch 'done
+            (while t
+              (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
+                                     (scan-sexps start-pos 1))))
+		;; If we've reached a sexp beyond the range requested,
+		;; or if there are no sexps left, we're done.
+		(when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
+                  (throw 'done nil))
+		;; Otherwise, this sexp is in the range requested.
+		(push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
+                      positions)
+		(setq start-pos sexp-end-pos))))
         ;; Terminate when we see "Containing expression ends prematurely"
         (scan-error nil)))
     (nreverse positions)))
@@ -552,33 +553,32 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
 render a friendly results buffer."
   (let ((buf (get-buffer-create (format "*refs: %s*" symbol))))
     (switch-to-buffer buf)
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    ;; Insert the header.
-    (insert
-     (elisp-refs--format-count
-      description
-      (-sum (--map (length (car it)) results))
-      (length results)
-      searched-file-count
-      prefix)
-     "\n\n")
-    ;; Insert the results.
-    (--each results
-      (-let* (((forms . buf) it)
-              (path (with-current-buffer buf elisp-refs--path)))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (save-excursion
+        ;; Insert the header.
         (insert
-         (propertize "File: " 'face 'bold)
-         (elisp-refs--path-button path) "\n")
-        (--each forms
-          (-let [(_ start-pos end-pos) it]
-            (insert (elisp-refs--containing-lines buf start-pos end-pos)
-                    "\n")))
-        (insert "\n")))
-    ;; Prepare the buffer for the user.
-    (goto-char (point-min))
-    (elisp-refs-mode)
-    (setq buffer-read-only t)
+         (elisp-refs--format-count
+          description
+          (-sum (--map (length (car it)) results))
+          (length results)
+          searched-file-count
+          prefix)
+         "\n\n")
+        ;; Insert the results.
+        (--each results
+          (-let* (((forms . buf) it)
+                  (path (with-current-buffer buf elisp-refs--path)))
+            (insert
+             (propertize "File: " 'face 'bold)
+             (elisp-refs--path-button path) "\n")
+            (--each forms
+              (-let [(_ start-pos end-pos) it]
+                (insert (elisp-refs--containing-lines buf start-pos end-pos)
+                        "\n")))
+            (insert "\n")))
+        ;; Prepare the buffer for the user.
+        (elisp-refs-mode)))
     ;; Cleanup buffers created when highlighting results.
     (kill-buffer elisp-refs--highlighting-buffer)))
 
@@ -657,6 +657,8 @@ t."
                       (-if-let (sym (thing-at-point 'symbol))
                           (when (funcall filter (read sym))
                             sym))))))
+
+;;; Commands
 
 ;;;###autoload
 (defun elisp-refs-function (symbol &optional path-prefix)
@@ -759,6 +761,8 @@ search."
                       (lambda (buf)
                         (elisp-refs--read-and-find-symbol buf symbol))
                       path-prefix))
+
+;;; Mode
 
 (defvar elisp-refs-mode-map
   (let ((map (make-sparse-keymap)))
