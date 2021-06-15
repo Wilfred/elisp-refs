@@ -71,18 +71,18 @@ Not recursive, so we don't consider subelements of nested sexps."
   (let ((positions nil))
     (with-current-buffer buffer
       (condition-case _err
-	  (catch 'done
+          (catch 'done
             (while t
               (let* ((sexp-end-pos (let ((parse-sexp-ignore-comments t))
                                      (scan-sexps start-pos 1))))
-		;; If we've reached a sexp beyond the range requested,
-		;; or if there are no sexps left, we're done.
-		(when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
+                ;; If we've reached a sexp beyond the range requested,
+                ;; or if there are no sexps left, we're done.
+                (when (or (null sexp-end-pos) (> sexp-end-pos end-pos))
                   (throw 'done nil))
-		;; Otherwise, this sexp is in the range requested.
-		(push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
+                ;; Otherwise, this sexp is in the range requested.
+                (push (list (elisp-refs--start-pos sexp-end-pos) sexp-end-pos)
                       positions)
-		(setq start-pos sexp-end-pos))))
+                (setq start-pos sexp-end-pos))))
         ;; Terminate when we see "Containing expression ends prematurely"
         (scan-error nil)))
     (nreverse positions)))
@@ -384,7 +384,7 @@ don't want to create lots of temporary buffers.")
           (generate-new-buffer " *refs-highlighting*"))
     (with-current-buffer elisp-refs--highlighting-buffer
       (delay-mode-hooks (emacs-lisp-mode))))
-  
+
   (with-current-buffer elisp-refs--highlighting-buffer
     (erase-buffer)
     (insert str)
@@ -467,10 +467,10 @@ propertize them."
                     (propertize after-match
                                 'face 'font-lock-comment-face))))
         (-> text
-            (elisp-refs--replace-tabs)
-            (elisp-refs--unindent-rigidly)
-            (propertize 'elisp-refs-start-pos expanded-start-pos
-                        'elisp-refs-path elisp-refs--path))))))
+          (elisp-refs--replace-tabs)
+          (elisp-refs--unindent-rigidly)
+          (propertize 'elisp-refs-start-pos expanded-start-pos
+                      'elisp-refs-path elisp-refs--path))))))
 
 (defun elisp-refs--find-file (button)
   "Open the file referenced by BUTTON."
