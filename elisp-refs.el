@@ -33,9 +33,9 @@
 ;;; Code:
 
 (require 'dash)
-(require 's)
 (require 'format)
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;;; Internal
 
@@ -52,7 +52,7 @@
     (push (format "%d" number) parts)
     (concat
      (if (< integer 0) "-" "")
-     (s-join "," parts))))
+     (string-join parts ","))))
 
 (defsubst elisp-refs--start-pos (end-pos)
   "Find the start position of form ending at END-POS
@@ -398,14 +398,14 @@ don't want to create lots of temporary buffers.")
   "Replace tabs in STRING with spaces."
   ;; This is important for unindenting, as we may unindent by less
   ;; than one whole tab.
-  (s-replace "\t" (s-repeat tab-width " ") string))
+  (replace-regexp-in-string "\t" (make-string tab-width ?\s) string))
 
 (defun elisp-refs--lines (string)
   "Return a list of all the lines in STRING.
 'a\nb' -> ('a\n' 'b')"
   (let ((lines nil))
     (while (> (length string) 0)
-      (let ((index (s-index-of "\n" string)))
+      (let ((index (string-match-p "\n" string)))
         (if index
             (progn
               (push (substring string 0 (1+ index)) lines)
@@ -427,11 +427,11 @@ at least one line has no indent.
 
 STRING should have a 'elisp-refs-start-pos property. The returned
 string will have this property updated to reflect the unindent."
-  (let* ((lines (s-lines string))
-         ;; Get the leading whitespace for each line.
-         (indents (--map (car (s-match (rx bos (+ whitespace)) it))
-                         lines))
-         (min-indent (-min (--map (length it) indents))))
+  (let* ((lines (split-string string "\n"))
+         (min-indent most-positive-fixnum) (indent 0))
+    (dolist (line lines)
+      (setq indent (or (string-match-p "[^[:blank:]]" line) 0))
+      (if (> min-indent indent) (setq min-indent indent)))
     (propertize
      (elisp-refs--map-lines
       string
@@ -542,8 +542,13 @@ KIND should be 'function, 'macro, 'variable, 'special or 'symbol."
                                    (elisp-refs--pluralize searched-file-count "loaded file")
                                    (elisp-refs--path-button (file-name-as-directory prefix)))
                          (format "Searched all %s loaded in Emacs."
-                                 (elisp-refs--pluralize searched-file-count "file")))))
-    (s-word-wrap 70 (format "%s %s" found-str searched-str))))
+                                 (elisp-refs--pluralize searched-file-count
+                                                        "file")))))
+    (with-temp-buffer
+      (insert found-str " " searched-str)
+      (let ((fill-column 70))
+        (fill-region (point-min) (point-max)))
+      (buffer-string))))
 
 ;; TODO: if we have multiple matches on one line, we repeatedly show
 ;; that line. That's slightly confusing.
@@ -628,7 +633,7 @@ MATCH-FN should return a list where each element takes the form:
 \(form start-pos end-pos)."
   (let* ((loaded-paths (elisp-refs--loaded-paths))
          (matching-paths (if path-prefix
-                             (--filter (s-starts-with? path-prefix it) loaded-paths)
+                             (--filter (string-prefix-p path-prefix it) loaded-paths)
                            loaded-paths))
          (loaded-src-bufs (mapcar #'elisp-refs--contents-buffer matching-paths)))
     ;; Use unwind-protect to ensure we always cleanup temporary
