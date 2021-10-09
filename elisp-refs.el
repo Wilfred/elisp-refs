@@ -619,8 +619,8 @@ MATCH-FN should return a list where each element takes the form:
       forms-and-bufs)))
 
 (defun elisp-refs--search (symbol description match-fn &optional path-prefix)
-  "Search for references to SYMBOL in all loaded files, by calling MATCH-FN on each buffer.
-If PATH-PREFIX is given, limit to loaded files whose path starts with that prefix.
+  "Find references to SYMBOL in all loaded files; call MATCH-FN on each buffer.
+When PATH-PREFIX, limit to loaded files whose path starts with that prefix.
 
 Display the results in a hyperlinked buffer.
 
