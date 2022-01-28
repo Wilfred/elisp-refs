@@ -580,7 +580,8 @@ render a friendly results buffer."
         ;; Prepare the buffer for the user.
         (elisp-refs-mode)))
     ;; Cleanup buffers created when highlighting results.
-    (kill-buffer elisp-refs--highlighting-buffer)))
+    (when elisp-refs--highlighting-buffer
+      (kill-buffer elisp-refs--highlighting-buffer))))
 
 (defun elisp-refs--loaded-bufs ()
   "Return a list of open buffers, one for each path in `load-path'."

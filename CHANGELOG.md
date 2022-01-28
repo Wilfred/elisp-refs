@@ -1,5 +1,8 @@
 ## v1.4
 
+Fixed an issue where elisp-refs would kill its own results buffer if
+no results were found.
+
 Fixed an issue when running elisp-refs on Emacs master, which renamed
 `format-proper-list-p` to `proper-list-p` (and moved it to subr.el).
 
