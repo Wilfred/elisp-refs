@@ -461,7 +461,7 @@ backquote forms."
   (let ((jka-compr-verbose nil)
         (elisp-refs-verbose nil))
     ;; First, get a results buffer.
-    (elisp-refs-function 'lsh))
+    (elisp-refs-function 'ash))
   ;; After moving to the first result, we should have a property that
   ;; tells us where the result came from.
   (elisp-refs-next-match)
