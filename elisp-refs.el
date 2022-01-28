@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016-2020  Wilfred Hughes <me@wilfred.me.uk>
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: lisp
 ;; Package-Requires: ((dash "2.12.0") (s "1.11.0"))
 

@@ -1,4 +1,6 @@
-## v1.4
+## v1.5
+
+## v1.4 (tagged 28 January 2022)
 
 Fixed an issue where elisp-refs would kill its own results buffer if
 no results were found.
