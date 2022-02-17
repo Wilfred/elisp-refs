@@ -96,9 +96,12 @@ SYMBOL-POSITIONS are 0-indexed, relative to READ-START-POS."
   (let* ((read-with-symbol-positions t)
          (read-start-pos (point))
          (form (read (current-buffer)))
+         (symbols (if (boundp 'read-symbol-positions-list)
+                      read-symbol-positions-list
+                    (read-positioning-symbols (current-buffer))))
          (end-pos (point))
          (start-pos (elisp-refs--start-pos end-pos)))
-    (list form start-pos end-pos read-symbol-positions-list read-start-pos)))
+    (list form start-pos end-pos symbols read-start-pos)))
 
 (defvar elisp-refs--path nil
   "A buffer-local variable used by `elisp-refs--contents-buffer'.
