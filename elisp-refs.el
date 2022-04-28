@@ -88,6 +88,9 @@ Not recursive, so we don't consider subelements of nested sexps."
         (scan-error nil)))
     (nreverse positions)))
 
+;; Removed in dfae76c9915454f9ef0885e1bac160a2c480e1d1.
+(defvar read-with-symbol-positions)
+
 (defun elisp-refs--read-buffer-form ()
   "Read a form from the current buffer, starting at point.
 Returns a list:
