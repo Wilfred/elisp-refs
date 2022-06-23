@@ -785,8 +785,9 @@ search."
 (define-derived-mode elisp-refs-mode special-mode "Refs"
   "Major mode for refs results buffers.")
 
-(defun elisp-refs-visit-match ()
-  "Go to the search result at point."
+(defun elisp--refs-visit-match (open-fn)
+  "Go to the search result at point.
+Open file with function OPEN_FN. `find-file` or `find-file-other-window`"
   (interactive)
   (let* ((path (get-text-property (point) 'elisp-refs-path))
          (pos (get-text-property (point) 'elisp-refs-start-pos))
@@ -803,7 +804,7 @@ search."
         (forward-line -1)
         (cl-incf line-offset)))
 
-    (find-file path)
+    (funcall open-fn path)
     (goto-char pos)
     ;; Move point so we're on the same char in the buffer that we were
     ;; on in the results buffer.
@@ -816,6 +817,17 @@ search."
             (cl-incf i tab-width)
           (cl-incf i))
         (forward-char 1)))))
+
+(defun elisp-refs-visit-match ()
+  "Goto the search result at point."
+  (interactive)
+  (elisp--refs-visit-match #'find-file))
+
+(defun elisp-refs-visit-match-other-window ()
+  "Goto the search result at point, opening in another window."
+  (interactive)
+  (elisp--refs-visit-match #'find-file-other-window))
+
 
 (defun elisp-refs--move-to-match (direction)
   "Move point one match forwards.
