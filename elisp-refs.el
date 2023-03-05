@@ -95,10 +95,12 @@ Returns a list:
 SYMBOL-POSITIONS are 0-indexed, relative to READ-START-POS."
   (let* ((read-with-symbol-positions t)
          (read-start-pos (point))
-         (form (read (current-buffer)))
+         (form (if (fboundp 'read-positioning-symbols)
+                   (read-positioning-symbols (current-buffer))
+                 (read (current-buffer))))
          (symbols (if (boundp 'read-symbol-positions-list)
                       read-symbol-positions-list
-                    (read-positioning-symbols (current-buffer))))
+                    nil))
          (end-pos (point))
          (start-pos (elisp-refs--start-pos end-pos)))
     (list form start-pos end-pos symbols read-start-pos)))
@@ -306,9 +308,10 @@ with its start and end position."
   (-non-nil
    (--mapcat
     (-let [(form start-pos end-pos symbol-positions _read-start-pos) it]
-      ;; Optimisation: don't bother walking a form if contains no
-      ;; references to the symbol we're looking for.
-      (when (assq symbol symbol-positions)
+      ;; Optimisation: if we have a list of positions for the current
+      ;; form (Emacs 28 and earlier), and it doesn't contain the
+      ;; symbol we're looking for, don't bother walking the form.
+      (when (or (null symbol-positions) (assq symbol symbol-positions))
         (elisp-refs--walk buffer form start-pos end-pos symbol match-p)))
     (elisp-refs--read-all-buffer-forms buffer))))
 
