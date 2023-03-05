@@ -269,7 +269,7 @@ backquote forms."
      (should
       (equal (length calls) 2)))))
 
-(ert-deftest elisp-refs--find-calls-let-body ()
+(ert-deftest elisp-refs--find-macro-calls-let-body ()
   "We should find macro calls in let body."
   (with-temp-backed-buffer
    "(let (bar) (foo)) (let* (bar) (foo))"
