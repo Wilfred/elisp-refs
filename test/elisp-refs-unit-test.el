@@ -1,10 +1,10 @@
 (require 'ert)
 (require 'elisp-refs)
 
-;; For Travis CI is recursing more deeply, meaning we hit recursion
+;; Tests in GitHub actions are recursing more deeply, meaning we hit recursion
 ;; limits. I suspect this is due to undercover collecting coverage
 ;; metrics.
-(when (getenv "TRAVIS")
+(when (getenv "CI")
   (message "Updating recursion limits from: max-specpdl-size: %s max-lisp-eval-depth: %s "
            max-specpdl-size
            max-lisp-eval-depth)
