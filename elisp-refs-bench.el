@@ -13,7 +13,7 @@
             (cl-letf (((symbol-function #'message)
                        (lambda (_format-string &rest _args))))
               (benchmark-run 1 ,form))]
-       (message "Elapsed time: %fs (%fs in %d GCs)"
+       (message "Elapsed time: %fs (%fs in %d GCs)\n"
                 total-time
                 gc-time
                 gc-runs))))
