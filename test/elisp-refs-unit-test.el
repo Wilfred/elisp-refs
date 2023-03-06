@@ -464,7 +464,7 @@ backquote forms."
     (elisp-refs-function 'ash))
   ;; After moving to the first result, we should have a property that
   ;; tells us where the result came from.
-  (elisp-refs-next-match)
+  (magit-section-forward)
   (should
    (not (null (get-text-property (point) 'elisp-refs-start-pos)))))
 
