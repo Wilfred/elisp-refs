@@ -95,9 +95,7 @@ Returns a list:
 SYMBOL-POSITIONS are 0-indexed, relative to READ-START-POS."
   (let* ((read-with-symbol-positions t)
          (read-start-pos (point))
-         (form (if (fboundp 'read-positioning-symbols)
-                   (read-positioning-symbols (current-buffer))
-                 (read (current-buffer))))
+         (form (read (current-buffer)))
          (symbols (if (boundp 'read-symbol-positions-list)
                       read-symbol-positions-list
                     nil))
