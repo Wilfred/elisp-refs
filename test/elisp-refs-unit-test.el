@@ -8,8 +8,8 @@
   (message "Updating recursion limits from: max-specpdl-size: %s max-lisp-eval-depth: %s "
            max-specpdl-size
            max-lisp-eval-depth)
-  (setq max-specpdl-size 2500)
-  (setq max-lisp-eval-depth 1000))
+  (setq max-specpdl-size 4000)
+  (setq max-lisp-eval-depth 2000))
 
 (defmacro with-temp-backed-buffer (contents &rest body)
   "Create a temporary file with CONTENTS, and evaluate BODY
