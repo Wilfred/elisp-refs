@@ -130,12 +130,12 @@ Internal implementation detail.")
 
 (defun elisp-refs--proper-list-p (val)
   "Is VAL a proper list?"
-  (if (fboundp 'format-proper-list-p)
-      ;; Emacs stable.
-      (with-no-warnings (format-proper-list-p val))
-    ;; Function was renamed in Emacs master:
-    ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=2fde6275b69fd113e78243790bf112bbdd2fe2bf
-    (with-no-warnings (proper-list-p val))))
+  (if (fboundp 'proper-list-p)
+      ;; `proper-list-p' was added in Emacs 27.1.
+      ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=2fde6275b69fd113e78243790bf112bbdd2fe2bf
+      (with-no-warnings (proper-list-p val))
+    ;; Earlier Emacs versions only had format-proper-list-p.
+    (with-no-warnings (format-proper-list-p val))))
 
 (defun elisp-refs--walk (buffer form start-pos end-pos symbol match-p &optional path)
   "Walk FORM, a nested list, and return a list of sublists (with
