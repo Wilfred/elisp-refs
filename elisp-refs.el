@@ -65,7 +65,7 @@ in the current buffer."
 between START-POS and END-POS (inclusive) in BUFFER.
 
 Positions exclude quote characters, so given 'foo or `foo, we
-report the position of the f.
+report the position of the symbol foo.
 
 Not recursive, so we don't consider subelements of nested sexps."
   (let ((positions nil))
