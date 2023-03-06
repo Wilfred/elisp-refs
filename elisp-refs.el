@@ -574,15 +574,15 @@ render a friendly results buffer."
                      searched-file-count
                      prefix))
             (insert "\n\n"))
-          (--each results
-            (-let* (((forms . buf) it)
-                    (path (buffer-local-value 'elisp-refs--path buf)))
+          (dolist (result results)
+            (pcase-let* ((`(,forms . ,buf) result)
+			 (path (buffer-local-value 'elisp-refs--path buf)))
               (magit-insert-section (elisp-refs-file path)
                 (magit-insert-heading
                   (propertize "File: " 'face 'bold)
                   (elisp-refs--path-button path) ":\n")
-                (--each forms
-                  (-let [(_ start-pos end-pos) it]
+                (dolist (form forms)
+                  (pcase-let ((`(,_ ,start-pos ,end-pos) form))
                     (magit-insert-section (elisp-refs-match
                                            (list start-pos end-pos))
                       (insert (elisp-refs--containing-lines
