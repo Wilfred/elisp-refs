@@ -1,5 +1,7 @@
 ## v1.5
 
+Fixed Emacs 29, which would previously crash or not find symbols.
+
 ## v1.4 (tagged 28 January 2022)
 
 Fixed an issue where elisp-refs would kill its own results buffer if
