@@ -1,4 +1,6 @@
-## v1.5
+## v1.6
+
+## v1.5 (tagged 9 March 2023)
 
 Fixed Emacs 29, which would previously crash or not find symbols.
 
