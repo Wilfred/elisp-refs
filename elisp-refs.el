@@ -37,6 +37,10 @@
 (require 'format)
 (eval-when-compile (require 'cl-lib))
 
+(defvar symbols-with-pos-enabled)
+(declare-function symbol-with-pos-p nil (object))
+(declare-function symbol-with-pos-pos nil (ls))
+
 ;;; Internal
 
 (defvar elisp-refs-verbose t)
@@ -176,7 +180,7 @@ START-POS and END-POS should be the position of FORM within BUFFER."
              ;; Calculate the positions after the opening paren.
              (elisp-refs--sexp-positions buffer (1+ start-pos) end-pos))))
       ;; For each subform, recurse if it's a list, or a matching symbol.
-      (--each (-zip form subforms-positions)
+      (--each (-zip-pair form subforms-positions)
         (-let [(subform subform-start subform-end) it]
           (when (or
                  (and (consp subform) (elisp-refs--proper-list-p subform))
