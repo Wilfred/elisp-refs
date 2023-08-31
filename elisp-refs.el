@@ -813,7 +813,6 @@ search."
     (define-key map (kbd "<backtab>") #'elisp-refs-prev-match)
     (define-key map (kbd "n") #'elisp-refs-next-match)
     (define-key map (kbd "p") #'elisp-refs-prev-match)
-    (define-key map (kbd "q") #'kill-this-buffer)
     (define-key map (kbd "RET") #'elisp-refs-visit-match)
     map)
   "Keymap for `elisp-refs-mode'.")
